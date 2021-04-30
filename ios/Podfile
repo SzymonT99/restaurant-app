@@ -12,6 +12,8 @@ target 'RestaurantApp' do
     :hermes_enabled => false
   )
 
+  pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
+
   target 'RestaurantAppTests' do
     inherit! :complete
     # Pods for testing
