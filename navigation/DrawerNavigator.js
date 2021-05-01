@@ -9,20 +9,53 @@ import { FavouriteScreen } from "../screens/FavouriteScreen";
 import { ReservationScreen } from "../screens/ReservationScreen";
 import { AboutRestaurantScreen } from "../screens/AboutRestaurantScreen";
 import { UserSettingsScreen } from "../screens/UserSettingsScreen";
+import { RegisterScreen } from "../screens/RegisterScreen";
 import { Button, Avatar } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 export default class DrawerNavigator extends Component {
 
   constructor(props) {
     super(props);
+    this.state = {
+      currentLogin: ''
+    }
   }
 
+  async saveUserName() {
+    let value = await AsyncStorage.getItem('login')
+    this.setState({ currentLogin: value });   // TODO: budowa wydajniejszego zapisu
+  }
+
+  componentDidMount() {
+    this.interval = setInterval(() => this.saveUserName(), 1000);
+  }
+
+  logOut = (navigation) => {
+    AsyncStorage.getItem('rememberUserData').then((value) => {
+      if (value === 'false') {
+        AsyncStorage.setItem('login', '');
+        AsyncStorage.setItem('password', '');
+      }
+      navigation.navigate("Login")
+    });
+  }
+
+  reduceUserName = (login) => {
+    if (login.lenght > 10) {
+       return login.substring(0, 10) + "...";
+    }
+    else {
+      return login;
+    }
+  }
 
   DrawerContent = (props) => {
 
     const { state } = props
-    const { routes, index } = state; //Not sure about the name of index property. Do check it out by logging the 'state' variable.
+    const { routes, index } = state;
     const focusedRoute = routes[index];
 
     return (
@@ -36,17 +69,17 @@ export default class DrawerNavigator extends Component {
                 overlayContainerStyle={{ backgroundColor: '#FFFFFF' }}
                 icon={{ name: 'user', color: '#000000', type: 'font-awesome' }}
                 activeOpacity={0.7}
-                containerStyle={{ flex: 2, marginTop: 30 }}
+                containerStyle={{ marginTop: 30 }}
               />
-              <Text style={styles.userNameText}>User123</Text>
+              <Text style={styles.userNameText}>{this.reduceUserName(this.state.currentLogin)}</Text>
               <Button
                 title="Edytuj profil"
                 type="clear"
                 titleStyle={styles.editProfileText}
                 buttonStyle={styles.editProfileBtn}
-                onPress={() => { props.navigation.navigate('UserSettings') }} />
+                onPress={() => { props.navigation.navigate("UserSettings") }} />
             </View>
-            <View style={{ justifyContent: "center", alignItems: "center", textAlign: "center"}}>
+            <View style={{ justifyContent: "center", paddingRight: 15}}>
               <Image
                 style={styles.logoStyle}
                 source={require('../images/logo-white.png')}
@@ -152,7 +185,7 @@ export default class DrawerNavigator extends Component {
               label="Wyloguj"
               inactiveTintColor="#FFFFFF"
               activeTintColor="#ff8c29"
-              onPress={() => { props.navigation.navigate('Login') }}
+              onPress={() => this.logOut(props.navigation)}
             />
           </View>
         </DrawerContentScrollView>
@@ -167,14 +200,18 @@ export default class DrawerNavigator extends Component {
         initialRouteName="Login"
         drawerContent={(props) => this.DrawerContent(props)}
       >
-        <Drawer.Screen name='Login' component={LoginScreen} />
+        <Drawer.Screen name='Login' component={LoginScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='Menu' component={MenuScreen} />
         <Drawer.Screen name='Basket' component={BasketScreen} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen} />
         <Drawer.Screen name='Favourite' component={FavouriteScreen} />
         <Drawer.Screen name='Reservation' component={ReservationScreen} />
         <Drawer.Screen name='AboutRestaurant' component={AboutRestaurantScreen} />
-        <Drawer.Screen name='UserSettings' component={UserSettingsScreen} />
+        <Drawer.Screen name='UserSettings' component={UserSettingsScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='Register' component={RegisterScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
       </Drawer.Navigator>
     );
   }
@@ -188,7 +225,8 @@ const styles = StyleSheet.create({
   userInfoSection: {
     flex: 1,
     flexDirection: "row",
-    paddingLeft: 20,
+    justifyContent: "space-between",
+    paddingLeft: 15,
   },
   userNameText: {
     fontSize: 22,
@@ -203,6 +241,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   editProfileText: {
+    paddingLeft: 3,
     fontSize: 12,
     textAlign: "left",
     color: "#FFFFFF"
@@ -218,6 +257,5 @@ const styles = StyleSheet.create({
   logoStyle: {
     width: 120,
     height: 120,
-    marginLeft: 44
   }
 });
