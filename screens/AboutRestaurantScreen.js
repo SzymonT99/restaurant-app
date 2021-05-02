@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { View, Text, StyleSheet } from "react-native";
-
+import Header from "../components/Header";
 
 export class AboutRestaurantScreen extends Component {
 
@@ -12,7 +12,7 @@ export class AboutRestaurantScreen extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Text>O restauracji</Text>
+                 <Header navigation={this.props.navigation} title="O restauracji" />
             </View>
         );
     }
@@ -20,9 +20,6 @@ export class AboutRestaurantScreen extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#f2f2f4",
         flex: 1,
-        justifyContent: "center", 
-        alignItems: "center"
     }
 });

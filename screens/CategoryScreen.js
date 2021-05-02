@@ -68,7 +68,6 @@ export class CategoryScreen extends Component {
                             categoryImage={require('../images/danie_glowne.jpg')}
                             categoryName="DANIE GŁÓWNE" />
                     </ScrollView>
-
                 </View>
             </View>
         );

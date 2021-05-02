@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, StyleSheet, TouchableOpacity, ImageBackground, View } from "react-native";
 
-const DrawerButton = (props) => {
+const CategoryElement = (props) => {
 
     return (
         <TouchableOpacity style={styles.categoryContainer}
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
     }
 });
 
-export default DrawerButton;
+export default CategoryElement;
