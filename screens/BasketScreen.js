@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { View, Text, StyleSheet } from "react-native";
-
+import Header from "../components/Header";
 
 export class BasketScreen extends Component {
 
@@ -12,7 +12,7 @@ export class BasketScreen extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Text>Koszyk</Text>
+                 <Header navigation={this.props.navigation} title="Koszyk" />
             </View>
         );
     }
@@ -20,9 +20,6 @@ export class BasketScreen extends Component {
 
 const styles = StyleSheet.create({
     container: {
-        backgroundColor: "#f2f2f4",
         flex: 1,
-        justifyContent: "center", 
-        alignItems: "center"
     }
 });

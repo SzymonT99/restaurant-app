@@ -2,7 +2,9 @@ import React, { Component } from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { LoginScreen } from "../screens/LoginScreen";
+import { CategoryScreen } from "../screens/CategoryScreen";
 import { MenuScreen } from "../screens/MenuScreen";
+import { DetailsScreen } from "../screens/DetailsScreen";
 import { BasketScreen } from "../screens/BasketScreen";
 import { OrdersHistoryScreen } from "../screens/OrdersHistoryScreen";
 import { FavouriteScreen } from "../screens/FavouriteScreen";
@@ -33,6 +35,10 @@ export default class DrawerNavigator extends Component {
     this.interval = setInterval(() => this.saveUserName(), 1000);
   }
 
+  componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+
   logOut = (navigation) => {
     AsyncStorage.getItem('rememberUserData').then((value) => {
       if (value === 'false') {
@@ -44,11 +50,13 @@ export default class DrawerNavigator extends Component {
   }
 
   reduceUserName = (login) => {
-    if (login.lenght > 10) {
-       return login.substring(0, 10) + "...";
-    }
-    else {
-      return login;
+    if (login !== null) {
+      if (login.lenght > 10) {
+        return login.substring(0, 10) + "...";
+     }
+     else {
+       return login;
+     }
     }
   }
 
@@ -99,8 +107,8 @@ export default class DrawerNavigator extends Component {
               label="Menu restauracji"
               inactiveTintColor="#FFFFFF"
               activeTintColor="#ff8c29"
-              focused={focusedRoute.name === "Menu" ? true : false}
-              onPress={() => { props.navigation.navigate('Menu') }}
+              focused={focusedRoute.name === "Categories" ? true : false}
+              onPress={() => { props.navigation.navigate('Categories') }}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -197,12 +205,14 @@ export default class DrawerNavigator extends Component {
     const Drawer = createDrawerNavigator();
     return (
       <Drawer.Navigator
-        initialRouteName="Login"
+        initialRouteName="Categories"
         drawerContent={(props) => this.DrawerContent(props)}
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
+        <Drawer.Screen name='Categories' component={CategoryScreen} />
         <Drawer.Screen name='Menu' component={MenuScreen} />
+        <Drawer.Screen name='Details' component={DetailsScreen} />
         <Drawer.Screen name='Basket' component={BasketScreen} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen} />
         <Drawer.Screen name='Favourite' component={FavouriteScreen} />
