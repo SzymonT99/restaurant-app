@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ImageBackground, ScrollView, ActivityIndicator } from "react-native";
 import Header from "../components/Header";
 import MenuElement from "../components/MenuElement";
 import { SearchBar } from 'react-native-elements';
@@ -10,14 +10,77 @@ export class MenuScreen extends Component {
         super(props);
         this.state = {
             search: '',
+            searchedMenuItems: [],
+            menuItems: null
         }
     }
 
+    getMenuByCategoryId = async () => {
+        const { categoryId } = this.props.route.params;
+        try {
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/menu-category/' + categoryId
+            );
+            let responseJson = await response.json();
+            this.setState({
+                menuItems: responseJson,
+                searchedMenuItems: responseJson
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    filtrMenu = (phrase) => {
+
+        const { menuItems } = this.state;
+
+        this.setState({ search: phrase });
+        const reg = new RegExp("^" + phrase, "i");
+        
+        let menuArray = [];
+
+        for (let item of menuItems) {
+            if (reg.test(item.itemName)) {
+                menuArray = menuArray.concat(item)
+            }
+        }
+
+        this.setState({
+            searchedMenuItems: menuArray
+        })
+
+    }
+
+    componentDidMount() {
+        this.getMenuByCategoryId();
+    }
+
+    generateMenuElements = () => {
+        const { searchedMenuItems } = this.state;
+
+        let menuLayout = searchedMenuItems.map((item, itemIndex) => {
+            return <MenuElement
+                navigation={this.props.navigation}
+                detailsId={item.detailsId}
+                menuItemImage={item.menuItemImage}
+                menuItemName={item.itemName}
+                menuItemIngritients={item.ingridients.join(", ")}
+                menuItemPrice={item.price}
+                menuItemRate={item.rate}
+                key={itemIndex} />
+        })
+        return menuLayout;
+    }
+
     render() {
+
+        const { categoryName, image } = this.props.route.params;
+
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Nazwa kategorii" />
-                <ImageBackground source={require('../images/danie_glowne.jpg')} style={styles.imageContainer}>
+                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} />
+                <ImageBackground source={{ uri: image }} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
                         searchIcon={{ color: "#000000", size: 26 }}
@@ -26,50 +89,22 @@ export class MenuScreen extends Component {
                         inputContainerStyle={styles.searchBarInputStyle}
                         inputStyle={{ color: "#000000", marginTop: 3, fontSize: 16 }}
                         placeholder="Wyszukaj"
-                        onChangeText={(text) => this.setState({ search: text })}
+                        onChangeText={(text) => this.filtrMenu(text)}
                         value={this.state.search}
                     />
                 </ImageBackground>
                 <View style={styles.infoBox}>
-                    <Text style={styles.infoText}>27 pozycji</Text>
+                    <Text style={styles.infoText}>{this.state.menuItems !== null
+                        ? (this.state.menuItems.length > 10 || this.state.menuItems.length === 0
+                            ? this.state.menuItems.length + " pozycji"
+                            : this.state.menuItems.length + " pozycje")
+                        : ""} </Text>
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView>
-                        <MenuElement navigation={this.props.navigation}
-                            menuItemImage={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                            menuItemName="Kurczak z pieczarkami"
-                            menuItemIngritients="filet z kurczaka, pieczarki, cebula, koperek, papryka"
-                            menuItemPrice={27.99}
-                            menuItemRate={4.8}
-                        />
-                        <MenuElement navigation={this.props.navigation}
-                            menuItemImage={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                            menuItemName="Kurczak z pieczarkami"
-                            menuItemIngritients="filet z kurczaka, pieczarki, cebula, koperek, papryka"
-                            menuItemPrice={27.99}
-                            menuItemRate={4.8}
-                        />
-                        <MenuElement navigation={this.props.navigation}
-                            menuItemImage={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                            menuItemName="Kurczak z pieczarkami"
-                            menuItemIngritients="filet z kurczaka, pieczarki, cebula, koperek, papryka"
-                            menuItemPrice={27.99}
-                            menuItemRate={4.8}
-                        />
-                        <MenuElement navigation={this.props.navigation}
-                            menuItemImage={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                            menuItemName="Kurczak z pieczarkami"
-                            menuItemIngritients="filet z kurczaka, pieczarki, cebula, koperek, papryka"
-                            menuItemPrice={27.99}
-                            menuItemRate={4.8}
-                        />
-                        <MenuElement navigation={this.props.navigation}
-                            menuItemImage={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                            menuItemName="Kurczak z pieczarkami"
-                            menuItemIngritients="filet z kurczaka, pieczarki, cebula, koperek, papryka"
-                            menuItemPrice={27.99}
-                            menuItemRate={4.8}
-                        />
+                        {this.state.menuItems !== null
+                            ? this.generateMenuElements()
+                            : <ActivityIndicator size="large" />}
                     </ScrollView>
                 </View>
             </View>
@@ -102,7 +137,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     searchBarContainerStyle: {
-        backgroundColor: "#f2f2f4",
+        backgroundColor: "transparent",
         borderBottomWidth: 0,
         borderTopWidth: 0,
         padding: 0,

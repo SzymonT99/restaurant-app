@@ -8,7 +8,7 @@ const SpecialOfferElement = (props) => {
             onPress={() => props.navigation.navigate("Details")}>
             <Image
                 style={styles.imageStyle}
-                source={props.image}
+                source={{uri: props.image}}
             />
             <View style={styles.descriptionContainer}>
                 <Text style={styles.menuOfferName}>{props.name}</Text>

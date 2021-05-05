@@ -2,9 +2,7 @@ import React, { Component } from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { LoginScreen } from "../screens/LoginScreen";
-import { CategoryScreen } from "../screens/CategoryScreen";
-import { MenuScreen } from "../screens/MenuScreen";
-import { DetailsScreen } from "../screens/DetailsScreen";
+import { MenuStackNavigator } from "./MenuStackNavigator";
 import { BasketScreen } from "../screens/BasketScreen";
 import { OrdersHistoryScreen } from "../screens/OrdersHistoryScreen";
 import { FavouriteScreen } from "../screens/FavouriteScreen";
@@ -107,8 +105,8 @@ export default class DrawerNavigator extends Component {
               label="Menu restauracji"
               inactiveTintColor="#FFFFFF"
               activeTintColor="#ff8c29"
-              focused={focusedRoute.name === "Categories" ? true : false}
-              onPress={() => { props.navigation.navigate('Categories') }}
+              focused={focusedRoute.name === "MenuStack" ? true : false}
+              onPress={() => { props.navigation.navigate('MenuStack') }}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -205,14 +203,12 @@ export default class DrawerNavigator extends Component {
     const Drawer = createDrawerNavigator();
     return (
       <Drawer.Navigator
-        initialRouteName="Categories"
+        initialRouteName="MenuStack"
         drawerContent={(props) => this.DrawerContent(props)}
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
-        <Drawer.Screen name='Categories' component={CategoryScreen} />
-        <Drawer.Screen name='Menu' component={MenuScreen} />
-        <Drawer.Screen name='Details' component={DetailsScreen} />
+        <Drawer.Screen name='MenuStack' component={MenuStackNavigator} />
         <Drawer.Screen name='Basket' component={BasketScreen} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen} />
         <Drawer.Screen name='Favourite' component={FavouriteScreen} />

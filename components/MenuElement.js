@@ -4,17 +4,31 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const MenuElement = (props) => {
 
+    formatCurrentName = (text) => {
+        if (text.length > 22) {
+            return text.substr(0, 22) + "...";
+        }
+        else return text;
+    }
+
+    formatCurrentIngritients = (text) => {
+        if (text.length > 70) {
+            return text.substr(0, 70) + "...";
+        }
+        else return text;
+    }
+
     return (
         <TouchableOpacity style={styles.container}
-            onPress={() => props.navigation.navigate("Details")}>
+            onPress={() => props.navigation.navigate("Details", {detailsId: props.detailsId, name: props.menuItemName})}>
             <View style={{ flexDirection: "row" }}>
                 <Image
                     style={styles.imageStyle}
-                    source={props.menuItemImage}
+                    source={{uri: props.menuItemImage}}
                 />
                 <View style={styles.menuItemContainer}>
-                    <Text style={styles.menuItemNameStyle}>{props.menuItemName}</Text>
-                    <Text style={styles.menuItemIngritientsStyle}>{props.menuItemIngritients}</Text>
+                    <Text style={styles.menuItemNameStyle}>{formatCurrentName(props.menuItemName)}</Text>
+                    <Text style={styles.menuItemIngritientsStyle}>{formatCurrentIngritients(props.menuItemIngritients)}</Text>
                     <View style={{ flexDirection: "row" }}>
                         <View>
                             <Text style={styles.menuItemPriceText}>{"Cena: " + props.menuItemPrice + " zł"}</Text>
@@ -29,6 +43,7 @@ const MenuElement = (props) => {
                         </TouchableOpacity>
                     </View>
                 </View>
+                <Icon name="heart" color="#f26566" size={24} onPress={() => alert("sth")} />
             </View>
         </TouchableOpacity>
     );
@@ -61,14 +76,14 @@ const styles = StyleSheet.create({
         marginLeft: 15,
     },
     menuItemNameStyle: {
-        fontSize: 18,
+        fontSize: 17,
         fontFamily: "Roboto",
         fontWeight: "bold"
     },
     menuItemIngritientsStyle: {
         height: 30,
         width: 230,
-        fontSize: 12,
+        fontSize: 11,
         fontFamily: "Roboto",
     },
     menuItemPriceText: {

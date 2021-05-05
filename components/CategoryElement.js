@@ -5,8 +5,9 @@ const CategoryElement = (props) => {
 
     return (
         <TouchableOpacity style={styles.categoryContainer}
-            onPress={() => props.navigation.navigate("Menu")}>
-            <ImageBackground source={props.categoryImage} style={styles.image} borderRadius={12}>
+            onPress={() => props.navigation.navigate("Menu", {categoryId: props.categoryId, 
+            categoryName: props.categoryName, image: props.categoryImage})}>
+            <ImageBackground source={{uri: props.categoryImage}} style={styles.image} borderRadius={12}>
                 <View style={styles.categoryBackground}>
                     <Text style={styles.categoryText}>{props.categoryName}</Text>
                 </View>

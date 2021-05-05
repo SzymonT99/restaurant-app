@@ -14,7 +14,7 @@ export class DetailsScreen extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Szczegóły" />
+                <Header comeBack={true} navigation={this.props.navigation} title="Szczegóły" />
             </View>
         );
     }

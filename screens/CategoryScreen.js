@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ScrollView, SafeAreaView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, ActivityIndicator } from "react-native";
 import { SearchBar } from 'react-native-elements';
 import Header from "../components/Header";
 import SpecialOfferElement from "../components/SpecialOfferElement";
@@ -11,8 +11,95 @@ export class CategoryScreen extends Component {
         super(props);
         this.state = {
             search: '',
+            searchedCategory: [],
+            categories: null,
+            specialOffers: null
         }
     }
+
+    getCategoriesFromApi = async () => {
+        try {
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/categories'
+            );
+            let responseJson = await response.json();
+            this.setState({
+                categories: responseJson,
+                searchedCategory: responseJson
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    getSpecialOffersFromApi = async () => {
+        try {
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/menu/special-offer'
+            );
+            let responseJson = await response.json();
+            this.setState({
+                specialOffers: responseJson
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    componentDidMount() {
+        this.getCategoriesFromApi();
+        this.getSpecialOffersFromApi();
+    }
+
+    generateCategoryElements = () => {
+        const { searchedCategory } = this.state;
+
+        let categoriesLayout = searchedCategory.map((category, categoryIndex) => {
+            return <CategoryElement
+                navigation={this.props.navigation}
+                categoryId={category.categoryId}
+                categoryImage={category.categoryImage}
+                categoryName={category.categoryName}
+                key={categoryIndex} />
+        })
+        return categoriesLayout;
+    }
+
+    generateSpecialOfferElements = () => {
+        const { specialOffers } = this.state;
+
+        let specialsLayout = specialOffers.map((offer, offerIndex) => {
+            return <SpecialOfferElement
+                navigation={this.props.navigation}
+                image={offer.menuItemImage}
+                name={offer.itemName}
+                price={offer.price}
+                key={offerIndex} />
+        })
+        return specialsLayout;
+    }
+
+    filtrCategories = (phrase) => {
+
+        const { categories } = this.state;
+
+        this.setState({ search: phrase });
+        const reg = new RegExp("^" + phrase, "i");
+        
+        let categoryArray = [];
+
+        for (let category of categories) {
+            if (reg.test(category.categoryName)) {
+                categoryArray = categoryArray.concat(category)
+            }
+        }
+
+        this.setState({
+            searchedCategory: categoryArray
+        })
+
+    }
+
     render() {
         return (
             <View style={styles.container}>
@@ -25,48 +112,23 @@ export class CategoryScreen extends Component {
                         containerStyle={styles.searchBarContainerStyle}
                         inputContainerStyle={styles.searchBarInputStyle}
                         inputStyle={{ color: "#000000", marginTop: 3, fontSize: 16 }}
-                        placeholder="Wyszukaj"
-                        onChangeText={(text) => this.setState({ search: text })}
+                        placeholder="Wyszukaj kategorie"
+                        onChangeText={(text) => this.filtrCategories(text)}
                         value={this.state.search}
                     />
                     <Text style={styles.offerHeader}>Dania dnia</Text>
                     <SafeAreaView>
                         <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center">
-                            <SpecialOfferElement navigation={this.props.navigation}
-                                image={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                                name="Tajskie pulpeciki drobiowe"
-                                price={27.99} />
-                            <SpecialOfferElement navigation={this.props.navigation}
-                                image={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                                name="Tajskie pulpeciki drobiowe"
-                                price={27.99} />
-                            <SpecialOfferElement navigation={this.props.navigation}
-                                image={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                                name="Tajskie pulpeciki drobiowe"
-                                price={27.99} />
-                            <SpecialOfferElement navigation={this.props.navigation}
-                                image={require('../images/tajskie-pulpeciki-drobiowe.jpg')}
-                                name="Tajskie pulpeciki drobiowe"
-                                price={27.99} />
+                            {this.state.specialOffers !== null
+                                ? this.generateSpecialOfferElements()
+                                : <ActivityIndicator size="large" />}
                         </ScrollView>
                     </SafeAreaView>
                     <Text style={styles.offerHeader}>Kategorie</Text>
                     <ScrollView style={styles.categoryContainer}>
-                        <CategoryElement navigation={this.props.navigation}
-                            categoryImage={require('../images/danie_glowne.jpg')}
-                            categoryName="DANIE GŁÓWNE" />
-                        <CategoryElement navigation={this.props.navigation}
-                            categoryImage={require('../images/danie_glowne.jpg')}
-                            categoryName="DANIE GŁÓWNE" />
-                        <CategoryElement navigation={this.props.navigation}
-                            categoryImage={require('../images/danie_glowne.jpg')}
-                            categoryName="DANIE GŁÓWNE" />
-                        <CategoryElement navigation={this.props.navigation}
-                            categoryImage={require('../images/danie_glowne.jpg')}
-                            categoryName="DANIE GŁÓWNE" />
-                        <CategoryElement navigation={this.props.navigation}
-                            categoryImage={require('../images/danie_glowne.jpg')}
-                            categoryName="DANIE GŁÓWNE" />
+                        {this.state.categories !== null
+                            ? this.generateCategoryElements()
+                            : <ActivityIndicator size="large" />}
                     </ScrollView>
                 </View>
             </View>
@@ -88,7 +150,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     searchBarContainerStyle: {
-        backgroundColor: "#f2f2f4",
+        backgroundColor: "transparent",
         borderBottomWidth: 0,
         borderTopWidth: 0,
         padding: 0,
