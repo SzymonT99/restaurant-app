@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CommentElement from "../components/CommentElement";
 import { Rating } from 'react-native-elements';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class DetailsScreen extends Component {
 
@@ -90,11 +91,11 @@ export class DetailsScreen extends Component {
         }
     }
 
-    getUserID = async () => {
+    getUserId = async () => {
         try {
             const id = await AsyncStorage.getItem('userId');
-            if (id !== null) {
-                this.setState({ currentUserId: id })
+            if (id !== '') {
+                this.setState({ currentUserId: parseInt(id) })
             }
         } catch (error) {
         }
@@ -102,7 +103,7 @@ export class DetailsScreen extends Component {
 
     componentDidMount() {
         this.getDetailsById();
-        this.getUserID();
+        this.getUserId();
     }
 
     render() {
@@ -172,6 +173,7 @@ export class DetailsScreen extends Component {
                                         imageSize={20}
                                         style={styles.ratingStyle}
                                         startingValue={1}
+                                        onFinishRating={(num) => this.setState({rate: num})}
                                     />
                                 </View>
                                 <View style={{ marginTop: 5, borderBottomWidth: 1 }} />
@@ -191,7 +193,11 @@ export class DetailsScreen extends Component {
                                     onPress={() => {
                                         if (this.state.comment !== "") {
                                             this.addComment();
-                                            this.setState({ commentWarning: false })
+                                            this.setState({
+                                                 commentWarning: false,
+                                                 comment: ''
+                                            })
+
                                         }
                                         else {
                                             this.setState({ commentWarning: true })

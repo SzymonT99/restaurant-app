@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, ScrollView, ActivityIndicator 
 import Header from "../components/Header";
 import MenuElement from "../components/MenuElement";
 import { SearchBar } from 'react-native-elements';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class MenuScreen extends Component {
 
@@ -11,9 +12,24 @@ export class MenuScreen extends Component {
         this.state = {
             search: '',
             searchedMenuItems: [],
-            menuItems: null
+            currentUserId: 0,
+            menuItems: null,
+            userLikedMenuItems: null
         }
     }
+
+    getUserId = async () => {
+        try {
+            let id = await AsyncStorage.getItem('userId');
+            id = parseInt(id);
+            if (id !== 0) {
+                this.setState({ currentUserId: id })
+            }
+            this.getUserLikedMenuItems();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     getMenuByCategoryId = async () => {
         const { categoryId } = this.props.route.params;
@@ -25,6 +41,21 @@ export class MenuScreen extends Component {
             this.setState({
                 menuItems: responseJson,
                 searchedMenuItems: responseJson
+            });
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    getUserLikedMenuItems = async () => {
+        const { currentUserId } = this.state;
+        try {
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
+            );
+            let responseJson = await response.json();
+            this.setState({
+                userLikedMenuItems: responseJson,
             });
         } catch (error) {
             console.error(error);
@@ -45,7 +76,6 @@ export class MenuScreen extends Component {
                 menuArray = menuArray.concat(item)
             }
         }
-
         this.setState({
             searchedMenuItems: menuArray
         })
@@ -54,14 +84,28 @@ export class MenuScreen extends Component {
 
     componentDidMount() {
         this.getMenuByCategoryId();
+        this.getUserId();
     }
 
     generateMenuElements = () => {
-        const { searchedMenuItems } = this.state;
+        const { searchedMenuItems, userLikedMenuItems } = this.state;
+
+        let completeMenuList = [];
+
+        for (const menuItem of searchedMenuItems) {
+            menuItem.isLiked = false;
+            for (const likedItem of userLikedMenuItems) {
+                if (menuItem.menuId === likedItem.menuId) {
+                    menuItem.isLiked = true;
+                }
+            }
+            completeMenuList.push(menuItem);
+        }
 
         let menuLayout = searchedMenuItems.map((item, itemIndex) => {
             return <MenuElement
                 navigation={this.props.navigation}
+                isLiked={item.isLiked}
                 detailsId={item.detailsId}
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
@@ -102,7 +146,7 @@ export class MenuScreen extends Component {
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView>
-                        {this.state.menuItems !== null
+                        {this.state.menuItems !== null && this.state.userLikedMenuItems !== null
                             ? this.generateMenuElements()
                             : <ActivityIndicator size="large" />}
                     </ScrollView>

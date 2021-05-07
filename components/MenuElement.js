@@ -1,8 +1,27 @@
-import React from "react";
-import { Text, StyleSheet, TouchableOpacity, View, Image } from "react-native";
+import React, { Component } from "react";
+import { Text, StyleSheet, TouchableOpacity, View, Image, ToastAndroid } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const MenuElement = (props) => {
+export default class MenuElement extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            userId: 0,
+            isLiked: false
+        }
+    }
+
+    getUserId = async () => {
+        try {
+            const id = await AsyncStorage.getItem('userId');
+            if (id !== '') {
+                this.setState({ userId: parseInt(id) })
+            }
+        } catch (error) {
+        }
+    };
 
     formatCurrentName = (text) => {
         if (text.length > 22) {
@@ -18,35 +37,87 @@ const MenuElement = (props) => {
         else return text;
     }
 
-    return (
-        <TouchableOpacity style={styles.container}
-            onPress={() => props.navigation.navigate("Details", { detailsId: props.detailsId })}>
-            <View style={{ flexDirection: "row" }}>
-                <Image
-                    style={styles.imageStyle}
-                    source={{ uri: props.menuItemImage }}
-                />
-                <View style={styles.menuItemContainer}>
-                    <Text style={styles.menuItemNameStyle}>{formatCurrentName(props.menuItemName)}</Text>
-                    <Text style={styles.menuItemIngritientsStyle}>{formatCurrentIngritients(props.menuItemIngritients)}</Text>
-                    <View style={{ flexDirection: "row" }}>
-                        <View>
-                            <Text style={styles.menuItemPriceText}>{"Cena: " + props.menuItemPrice + " zł"}</Text>
-                            <View style={styles.rateContainer}>
-                                <Icon name="star" color="#ff8c29" size={20} />
-                                <Text style={styles.rateMenuItemText}>{props.menuItemRate}</Text>
+    addToFavourite = async (userId, menuItemId) => {
+        try {
+            const data = { userId: userId, menuItemId: menuItemId };
+            await fetch(
+                `http://192.168.0.152:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            this.setState({isLiked: true});
+            ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    removeFromFavourite = async (userId, menuItemId) => {
+        try {
+            const data = { userId: userId, menuItemId: menuItemId };
+            await fetch(
+                `http://192.168.0.152:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            this.setState({isLiked: false});
+            ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    componentDidMount() {
+        this.getUserId();
+        this.setState({
+            isLiked: this.props.isLiked
+        })
+    }
+
+    render() {
+        return (
+            <TouchableOpacity style={styles.container}
+                onPress={() => this.props.navigation.navigate("Details", { detailsId: this.props.detailsId })}>
+                <View style={{ flexDirection: "row" }}>
+                    <Image
+                        style={styles.imageStyle}
+                        source={{ uri: this.props.menuItemImage }}
+                    />
+                    <View style={styles.menuItemContainer}>
+                        <Text style={styles.menuItemNameStyle}>{this.formatCurrentName(this.props.menuItemName)}</Text>
+                        <Text style={styles.menuItemIngritientsStyle}>{this.formatCurrentIngritients(this.props.menuItemIngritients)}</Text>
+                        <View style={{ flexDirection: "row" }}>
+                            <View>
+                                <Text style={styles.menuItemPriceText}>{"Cena: " + this.props.menuItemPrice + " zł"}</Text>
+                                <View style={styles.rateContainer}>
+                                    <Icon name="star" color="#ff8c29" size={20} />
+                                    <Text style={styles.rateMenuItemText}>{Math.round(this.props.menuItemRate * 10) / 10}</Text>
+                                </View>
                             </View>
+                            <TouchableOpacity style={styles.basketButtonStyle}
+                                onPress={() => this.props.navigation.navigate("Basket")}>
+                                <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
+                            </TouchableOpacity>
                         </View>
-                        <TouchableOpacity style={styles.basketButtonStyle}
-                            onPress={() => props.navigation.navigate("Basket")}>
-                            <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
-                        </TouchableOpacity>
                     </View>
+                    {this.state.isLiked === true
+                        ? <Icon style={styles.heartIconStyle} name="heart" color="#f26566" size={24}
+                            onPress={() => this.removeFromFavourite(this.state.userId, this.props.detailsId)} />
+                        : <Icon style={styles.heartIconStyle} name="heart-outline" color="#000000" size={24}
+                            onPress={() => this.addToFavourite(this.state.userId, this.props.detailsId)} />
+                    }
                 </View>
-                <Icon style={styles.heartIconStyle} name="heart" color="#f26566" size={24} onPress={() => alert("sth")} />
-            </View>
-        </TouchableOpacity>
-    );
+            </TouchableOpacity>
+        );
+    }
 }
 
 const styles = StyleSheet.create({
@@ -122,4 +193,3 @@ const styles = StyleSheet.create({
     }
 });
 
-export default MenuElement;

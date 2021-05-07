@@ -74,7 +74,7 @@ export class LoginScreen extends Component {
                 let id = await response.json();
                 AsyncStorage.setItem('login', this.state.login);
                 AsyncStorage.setItem('password', this.state.password);
-                AsyncStorage.setItem('userId', id);
+                AsyncStorage.setItem('userId', String(id));
                 this.setState({warning: ''});
                 this.props.navigation.navigate("Category");
                 ToastAndroid.show("Pomyślnie zalogowano!", ToastAndroid.SHORT);
