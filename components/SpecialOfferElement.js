@@ -5,10 +5,10 @@ const SpecialOfferElement = (props) => {
 
     return (
         <TouchableOpacity style={styles.offerContainer}
-            onPress={() => props.navigation.navigate("Details")}>
+            onPress={() => props.navigation.navigate("Details", {detailsId: props.detailsId})}>
             <Image
                 style={styles.imageStyle}
-                source={props.image}
+                source={{uri: props.image}}
             />
             <View style={styles.descriptionContainer}>
                 <Text style={styles.menuOfferName}>{props.name}</Text>

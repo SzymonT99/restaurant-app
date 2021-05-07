@@ -1,21 +1,26 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Badge } from 'react-native-elements'
 
-export default function Header({ title, navigation }) {
+export default function Header({ comeBack, title, navigation }) {
+
+    //let comeBack = (pcomeBack === undefined) ? false : true;
 
     return (
         <View style={styles.header}>
             <View style={styles.leftComponent}>
-                <Icon name='menu' size={32} onPress={() => navigation.openDrawer()} />
+                {comeBack == true
+                    ? <MaterialIcons name='arrow-back' size={32} onPress={() => navigation.goBack()} />
+                    : <Icon name='menu' size={32} onPress={() => navigation.openDrawer()} />}
             </View>
             <View>
                 <Text style={styles.headerText}>{title}</Text>
             </View>
             <View style={styles.rightComponent}>
                 <View>
-                    <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")}/>
+                    <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")} />
                     <Badge
                         textStyle={styles.badgeTextStyle}
                         badgeStyle={styles.badgeStyle}
@@ -56,5 +61,5 @@ const styles = StyleSheet.create({
     badgeTextStyle: {
         color: "#000000",
         fontWeight: "bold"
-    } 
+    }
 });
