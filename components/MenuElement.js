@@ -96,7 +96,9 @@ export default class MenuElement extends Component {
                         <Text style={styles.menuItemIngritientsStyle}>{this.formatCurrentIngritients(this.props.menuItemIngritients)}</Text>
                         <View style={{ flexDirection: "row" }}>
                             <View>
-                                <Text style={styles.menuItemPriceText}>{"Cena: " + this.props.menuItemPrice + " zł"}</Text>
+                                <Text style={styles.menuItemPriceText}>{"Cena: " + 
+                                (String(this.props.menuItemPrice ).slice(-1) !== "0" ? this.props.menuItemPrice  + "0" : this.props.menuItemPrice )
+                                + " zł"}</Text>
                                 <View style={styles.rateContainer}>
                                     <Icon name="star" color="#ff8c29" size={20} />
                                     <Text style={styles.rateMenuItemText}>{Math.round(this.props.menuItemRate * 10) / 10}</Text>

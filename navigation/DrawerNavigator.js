@@ -210,13 +210,15 @@ export default class DrawerNavigator extends Component {
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='MenuStack' component={MenuStackNavigator} />
-        <Drawer.Screen name='Basket' component={BasketScreen} />
-        <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen} />
-        <Drawer.Screen name='Favourite' component={FavouriteScreen} />
+        <Drawer.Screen name='Basket' component={BasketScreen}
+        unmountOnBlur={true} options={{ unmountOnBlur: true}} />
+        <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen}
+        unmountOnBlur={true} options={{ unmountOnBlur: true}} />
+        <Drawer.Screen name='Favourite' component={FavouriteScreen} 
+        unmountOnBlur={true} options={{ unmountOnBlur: true}}/>
         <Drawer.Screen name='Reservation' component={ReservationScreen} />
         <Drawer.Screen name='AboutRestaurant' component={AboutRestaurantScreen} />
-        <Drawer.Screen name='UserSettings' component={UserSettingsScreen}
-          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='UserSettings' component={UserSettingsScreen}/>
         <Drawer.Screen name='Register' component={RegisterScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
       </Drawer.Navigator>

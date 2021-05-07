@@ -90,8 +90,6 @@ export class MenuScreen extends Component {
     generateMenuElements = () => {
         const { searchedMenuItems, userLikedMenuItems } = this.state;
 
-        let completeMenuList = [];
-
         for (const menuItem of searchedMenuItems) {
             menuItem.isLiked = false;
             for (const likedItem of userLikedMenuItems) {
@@ -99,7 +97,6 @@ export class MenuScreen extends Component {
                     menuItem.isLiked = true;
                 }
             }
-            completeMenuList.push(menuItem);
         }
 
         let menuLayout = searchedMenuItems.map((item, itemIndex) => {
