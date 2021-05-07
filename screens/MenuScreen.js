@@ -65,7 +65,7 @@ export class MenuScreen extends Component {
                 detailsId={item.detailsId}
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
-                menuItemIngritients={item.ingridients.join(", ")}
+                menuItemIngritients={item.ingredients.join(", ")}
                 menuItemPrice={item.price}
                 menuItemRate={item.rate}
                 key={itemIndex} />

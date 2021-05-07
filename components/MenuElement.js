@@ -20,11 +20,11 @@ const MenuElement = (props) => {
 
     return (
         <TouchableOpacity style={styles.container}
-            onPress={() => props.navigation.navigate("Details", {detailsId: props.detailsId, name: props.menuItemName})}>
+            onPress={() => props.navigation.navigate("Details", { detailsId: props.detailsId })}>
             <View style={{ flexDirection: "row" }}>
                 <Image
                     style={styles.imageStyle}
-                    source={{uri: props.menuItemImage}}
+                    source={{ uri: props.menuItemImage }}
                 />
                 <View style={styles.menuItemContainer}>
                     <Text style={styles.menuItemNameStyle}>{formatCurrentName(props.menuItemName)}</Text>
@@ -43,7 +43,7 @@ const MenuElement = (props) => {
                         </TouchableOpacity>
                     </View>
                 </View>
-                <Icon name="heart" color="#f26566" size={24} onPress={() => alert("sth")} />
+                <Icon style={styles.heartIconStyle} name="heart" color="#f26566" size={24} onPress={() => alert("sth")} />
             </View>
         </TouchableOpacity>
     );
@@ -114,6 +114,11 @@ const styles = StyleSheet.create({
         marginLeft: 4,
         fontFamily: "Roboto",
         fontSize: 13,
+    },
+    heartIconStyle: {
+        position: 'absolute',
+        top: -1,
+        right: -8
     }
 });
 

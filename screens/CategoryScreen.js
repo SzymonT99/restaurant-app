@@ -71,6 +71,7 @@ export class CategoryScreen extends Component {
         let specialsLayout = specialOffers.map((offer, offerIndex) => {
             return <SpecialOfferElement
                 navigation={this.props.navigation}
+                detailsId={offer.detailsId}
                 image={offer.menuItemImage}
                 name={offer.itemName}
                 price={offer.price}
@@ -85,7 +86,7 @@ export class CategoryScreen extends Component {
 
         this.setState({ search: phrase });
         const reg = new RegExp("^" + phrase, "i");
-        
+
         let categoryArray = [];
 
         for (let category of categories) {
@@ -116,16 +117,17 @@ export class CategoryScreen extends Component {
                         onChangeText={(text) => this.filtrCategories(text)}
                         value={this.state.search}
                     />
-                    <Text style={styles.offerHeader}>Dania dnia</Text>
-                    <SafeAreaView>
-                        <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center">
-                            {this.state.specialOffers !== null
-                                ? this.generateSpecialOfferElements()
-                                : <ActivityIndicator size="large" />}
-                        </ScrollView>
-                    </SafeAreaView>
-                    <Text style={styles.offerHeader}>Kategorie</Text>
-                    <ScrollView style={styles.categoryContainer}>
+                    <ScrollView>
+                        <Text style={styles.offerHeader}>Dania dnia</Text>
+                        <SafeAreaView>
+                            <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center">
+                                {this.state.specialOffers !== null
+                                    ? this.generateSpecialOfferElements()
+                                    : <ActivityIndicator size="large" />}
+                            </ScrollView>
+                        </SafeAreaView>
+                        <Text style={styles.offerHeader}>Kategorie</Text>
+
                         {this.state.categories !== null
                             ? this.generateCategoryElements()
                             : <ActivityIndicator size="large" />}
@@ -155,7 +157,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 0,
         padding: 0,
         marginTop: 12,
-        marginBottom: 8,
+        marginBottom: 12
     },
     contentContainer: {
         flex: 1,
@@ -166,13 +168,12 @@ const styles = StyleSheet.create({
     offerHeader: {
         fontSize: 24,
         fontFamily: "Roboto",
-        fontWeight: "bold"
+        fontWeight: "bold",
+        marginBottom: 8
     },
     specialOfferContainer: {
+        height: 180,
         flexDirection: "row",
-        height: 200,
-    },
-    categoryContainer: {
-        marginTop: 10
+        marginBottom: 12
     }
 });

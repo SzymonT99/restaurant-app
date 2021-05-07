@@ -43,6 +43,7 @@ export default class DrawerNavigator extends Component {
         AsyncStorage.setItem('login', '');
         AsyncStorage.setItem('password', '');
       }
+      AsyncStorage.setItem('userId', '');
       navigation.navigate("Login")
     });
   }

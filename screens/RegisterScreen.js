@@ -231,7 +231,7 @@ export class RegisterScreen extends Component {
                                 label="Powtórz Hasło"
                                 labelStyle={{ color: "#ff8c29", fontSize: 13, fontFamily: "Roboto" }}
                                 leftIcon={{ type: 'font-awesome', name: 'lock', size: 28, color: "white" }}
-                                rightIcon={<Icon name={this.state.showPassword === true ? 'eye' : 'eye-off'}
+                                rightIcon={<Icon name={this.state.showRepeatedPassword === true ? 'eye' : 'eye-off'}
                                     size={24} color='white'
                                     onPress={() => this.state.showRepeatedPassword === false
                                         ? this.setState({ showRepeatedPassword: true })
