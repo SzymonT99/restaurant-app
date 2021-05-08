@@ -48,7 +48,7 @@ export default class MenuElement extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-            this.setState({isLiked: true});
+            this.setState({ isLiked: true });
             ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
         }
         catch (error) {
@@ -67,8 +67,27 @@ export default class MenuElement extends Component {
                     'Content-Type': 'application/json'
                 }
             });
-            this.setState({isLiked: false});
+            this.setState({ isLiked: false });
             ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    addItemToBasket = async (menuItemId) => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            const data = { menuId: menuItemId, orderId: orderId };
+            await fetch(
+                `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
         }
         catch (error) {
             console.error(error);
@@ -96,16 +115,16 @@ export default class MenuElement extends Component {
                         <Text style={styles.menuItemIngritientsStyle}>{this.formatCurrentIngritients(this.props.menuItemIngritients)}</Text>
                         <View style={{ flexDirection: "row" }}>
                             <View>
-                                <Text style={styles.menuItemPriceText}>{"Cena: " + 
-                                (String(this.props.menuItemPrice ).slice(-1) !== "0" ? this.props.menuItemPrice  + "0" : this.props.menuItemPrice )
-                                + " zł"}</Text>
+                                <Text style={styles.menuItemPriceText}>{"Cena: " +
+                                    (String(this.props.menuItemPrice).slice(-1) !== "0" ? this.props.menuItemPrice + "0" : this.props.menuItemPrice)
+                                    + " zł"}</Text>
                                 <View style={styles.rateContainer}>
                                     <Icon name="star" color="#ff8c29" size={20} />
                                     <Text style={styles.rateMenuItemText}>{Math.round(this.props.menuItemRate * 10) / 10}</Text>
                                 </View>
                             </View>
                             <TouchableOpacity style={styles.basketButtonStyle}
-                                onPress={() => this.props.navigation.navigate("Basket")}>
+                                onPress={() => this.addItemToBasket(this.props.detailsId)}>
                                 <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
                             </TouchableOpacity>
                         </View>

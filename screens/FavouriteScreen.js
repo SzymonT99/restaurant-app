@@ -13,7 +13,21 @@ export class FavouriteScreen extends Component {
             search: '',
             searchedMenuItems: [],
             currentUserId: 0,
-            likedMenuItems: []
+            likedMenuItems: [],
+            orderQuantity: 0
+        }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({orderQuantity: responseJson})
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -86,16 +100,13 @@ export class FavouriteScreen extends Component {
 
     componentDidMount() {
         this.getUserId();
-    }
-
-    componentDidCatch() {
-        this.getUserId();
+        this.getOrderQuantity();
     }
 
     render() {
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Ulubione" />
+                <Header navigation={this.props.navigation} title="Ulubione" orderQuantity={this.state.orderQuantity}/>
                 <ImageBackground source={require('../images/table-with-dishes.jpg')} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}

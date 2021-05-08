@@ -13,9 +13,12 @@ const MenuStackNavigator = () => {
             screenOptions={{
                 headerShown: false
             }}>
-            <Stack.Screen name='Category' component={CategoryScreen} />
-            <Stack.Screen name='Menu' component={MenuScreen} />
-            <Stack.Screen name='Details' component={DetailsScreen} />
+            <Stack.Screen name='Category' component={CategoryScreen} 
+             unmountOnBlur={true} options={{ unmountOnBlur: true}}/>
+            <Stack.Screen name='Menu' component={MenuScreen} 
+             unmountOnBlur={true} options={{ unmountOnBlur: true}}/>
+            <Stack.Screen name='Details' component={DetailsScreen} 
+             unmountOnBlur={true} options={{ unmountOnBlur: true}}/>
         </Stack.Navigator>
     );
 };

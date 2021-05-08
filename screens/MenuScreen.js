@@ -14,7 +14,21 @@ export class MenuScreen extends Component {
             searchedMenuItems: [],
             currentUserId: 0,
             menuItems: null,
-            userLikedMenuItems: null
+            userLikedMenuItems: null,
+            orderQuantity: 0
+        }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({orderQuantity: responseJson})
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -85,6 +99,7 @@ export class MenuScreen extends Component {
     componentDidMount() {
         this.getMenuByCategoryId();
         this.getUserId();
+        this.getOrderQuantity();
     }
 
     generateMenuElements = () => {
@@ -103,6 +118,7 @@ export class MenuScreen extends Component {
             return <MenuElement
                 navigation={this.props.navigation}
                 isLiked={item.isLiked}
+                onPress={() => this.getOrderQuantity()}
                 detailsId={item.detailsId}
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
@@ -120,7 +136,7 @@ export class MenuScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} />
+                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity}/>
                 <ImageBackground source={{ uri: image }} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
