@@ -9,7 +9,7 @@ const Stack = createStackNavigator();
 const MenuStackNavigator = () => {
 
     return (
-        <Stack.Navigator
+        <Stack.Navigator 
             screenOptions={{
                 headerShown: false
             }}>

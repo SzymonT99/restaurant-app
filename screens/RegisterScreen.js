@@ -134,7 +134,7 @@ export class RegisterScreen extends Component {
         const { login, email, phoneNumber, password } = this.state;
         try {
             // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.152:8080/restaurant/create-user', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/create-user', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',

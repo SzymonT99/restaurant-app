@@ -57,7 +57,7 @@ export class LoginScreen extends Component {
         const { login, password } = this.state;
         try {
             // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user/login', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user/login', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -77,7 +77,7 @@ export class LoginScreen extends Component {
                 AsyncStorage.setItem('userId', String(userId));
                 this.getCurrentOrderId(userId);
                 this.setState({ warning: '' });
-                this.props.navigation.navigate("Category");
+                this.props.navigation.navigate("MenuStack");
                 ToastAndroid.show("Pomyślnie zalogowano!", ToastAndroid.SHORT);
             }
             else if (loginStatus === 401) {
@@ -95,7 +95,7 @@ export class LoginScreen extends Component {
 
     getCurrentOrderId = async (userId) => {
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/order-create/' + userId);
+            let response = await fetch('http://192.168.0.153:8080/restaurant/order-create/' + userId);
             let currentOrderId = await response.json();
             AsyncStorage.setItem('orderId', String(currentOrderId));
             console.log("---- orderId: " + currentOrderId)

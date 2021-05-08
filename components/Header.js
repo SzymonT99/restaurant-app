@@ -6,8 +6,6 @@ import { Badge } from 'react-native-elements'
 
 export default function Header({ orderQuantity, comeBack, title, navigation }) {
 
-    //let comeBack = (pcomeBack === undefined) ? false : true;
-
     return (
         <View style={styles.header}>
             <View style={styles.leftComponent}>

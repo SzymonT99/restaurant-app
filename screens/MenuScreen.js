@@ -23,7 +23,7 @@ export class MenuScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({orderQuantity: responseJson})
@@ -49,7 +49,7 @@ export class MenuScreen extends Component {
         const { categoryId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-category/' + categoryId
+                'http://192.168.0.153:8080/restaurant/menu-category/' + categoryId
             );
             let responseJson = await response.json();
             this.setState({
@@ -65,7 +65,7 @@ export class MenuScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
+                'http://192.168.0.153:8080/restaurant/menu-like/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({
@@ -100,6 +100,14 @@ export class MenuScreen extends Component {
         this.getMenuByCategoryId();
         this.getUserId();
         this.getOrderQuantity();
+        this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+        this.props.navigation.addListener('blur', () => {
+            clearInterval(this.interval);
+        })
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     generateMenuElements = () => {
@@ -118,7 +126,6 @@ export class MenuScreen extends Component {
             return <MenuElement
                 navigation={this.props.navigation}
                 isLiked={item.isLiked}
-                onPress={() => this.getOrderQuantity()}
                 detailsId={item.detailsId}
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
