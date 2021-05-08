@@ -17,6 +17,20 @@ export class DetailsScreen extends Component {
             comment: '',
             rate: 0.0,
             commentWarning: false,
+            orderQuantity: 0
+        }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({orderQuantity: responseJson})
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -24,7 +38,7 @@ export class DetailsScreen extends Component {
         const { detailsId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu/details/' + detailsId
+                'http://192.168.0.153:8080/restaurant/menu/details/' + detailsId
             );
             let responseJson = await response.json();
             this.setState({
@@ -63,7 +77,7 @@ export class DetailsScreen extends Component {
         const { currentUserId, menuItemDetails, comment, rate } = this.state;
         let detailsId = menuItemDetails.details.detailsId;
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/add-review', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/add-review', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -101,9 +115,31 @@ export class DetailsScreen extends Component {
         }
     };
 
+    addItemToBasket = async (menuItemId) => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            const data = { menuId: menuItemId, orderId: orderId };
+            await fetch(
+                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
+            this.getDetailsById();  // aktualizacja statystyk - liczby zamówień elementu menu
+            this.getOrderQuantity();
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
     componentDidMount() {
         this.getDetailsById();
         this.getUserId();
+        this.getOrderQuantity();
     }
 
     render() {
@@ -114,7 +150,7 @@ export class DetailsScreen extends Component {
             <ScrollView
                 ref={(view) => { this.scrollView = view; }}
                 style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title="Szczegóły" />
+                <Header comeBack={true} navigation={this.props.navigation} title="Szczegóły" orderQuantity={this.state.orderQuantity}/>
                 {menuItemDetails !== null
                     ? <View>
                         <View>
@@ -137,7 +173,7 @@ export class DetailsScreen extends Component {
                                         + " zł"}
                                 </Text>
                                 <TouchableOpacity style={styles.basketButton}
-                                    onPress={() => alert("xd")}>
+                                    onPress={() => this.addItemToBasket(menuItemDetails.menuId)}>
                                     <MaterialCommunityIcon name="cart-plus" color="#FFFFFF" size={24} />
                                 </TouchableOpacity>
                             </View>

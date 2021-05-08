@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import { Text, StyleSheet, TouchableOpacity, View, Image, ToastAndroid } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default class MenuElement extends Component {
@@ -41,14 +42,14 @@ export default class MenuElement extends Component {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
             await fetch(
-                `http://192.168.0.152:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.153:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json'
                 }
             });
-            this.setState({isLiked: true});
+            this.setState({ isLiked: true });
             ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
         }
         catch (error) {
@@ -60,15 +61,53 @@ export default class MenuElement extends Component {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
             await fetch(
-                `http://192.168.0.152:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.153:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'DELETE',
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'application/json'
                 }
             });
-            this.setState({isLiked: false});
+            this.setState({ isLiked: false });
             ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    addItemToBasket = async (menuItemId) => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            const data = { menuId: menuItemId, orderId: orderId };
+            await fetch(
+                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                method: 'POST',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    removeItemFromBasket = async (menuItemId) => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            const data = { menuId: menuItemId, orderId: orderId };
+            await fetch(
+                `http://192.168.0.153:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                method: 'DELETE',
+                headers: {
+                    Accept: 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+            ToastAndroid.show("Usunięto z koszyka", ToastAndroid.SHORT);
         }
         catch (error) {
             console.error(error);
@@ -96,18 +135,35 @@ export default class MenuElement extends Component {
                         <Text style={styles.menuItemIngritientsStyle}>{this.formatCurrentIngritients(this.props.menuItemIngritients)}</Text>
                         <View style={{ flexDirection: "row" }}>
                             <View>
-                                <Text style={styles.menuItemPriceText}>{"Cena: " + 
-                                (String(this.props.menuItemPrice ).slice(-1) !== "0" ? this.props.menuItemPrice  + "0" : this.props.menuItemPrice )
-                                + " zł"}</Text>
+                                <Text style={styles.menuItemPriceText}>{"Cena: " +
+                                    (String(this.props.menuItemPrice).slice(-1) !== "0" ? this.props.menuItemPrice + "0" : this.props.menuItemPrice)
+                                    + " zł"}</Text>
                                 <View style={styles.rateContainer}>
                                     <Icon name="star" color="#ff8c29" size={20} />
                                     <Text style={styles.rateMenuItemText}>{Math.round(this.props.menuItemRate * 10) / 10}</Text>
                                 </View>
                             </View>
-                            <TouchableOpacity style={styles.basketButtonStyle}
-                                onPress={() => this.props.navigation.navigate("Basket")}>
-                                <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
-                            </TouchableOpacity>
+                            {this.props.forBasket !== true
+                                ?
+                                <TouchableOpacity style={styles.basketButtonStyle}
+                                    onPress={() => this.addItemToBasket(this.props.detailsId)}>
+                                    <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
+                                </TouchableOpacity>
+                                :
+                                <View style={styles.orderBox}>
+                                    <TouchableOpacity
+                                        onPress={() => this.addItemToBasket(this.props.detailsId)}>
+                                        <MaterialIcon  name="add-circle-outline" color="#ff8c29" size={28} />
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => this.removeItemFromBasket(this.props.detailsId)}>
+                                        <MaterialIcon name="remove-circle-outline" color="#ff8c29" size={28} />
+                                    </TouchableOpacity>
+                                    <View style={styles.orderQuantityContainer}>
+                                        <Text style={styles.basketButtonText}>{"Sztuk: " + this.props.orderItemQuantity} </Text>
+                                    </View>
+                                </View>
+                            }
                         </View>
                     </View>
                     {this.state.isLiked === true
@@ -192,6 +248,19 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: -1,
         right: -8
+    },
+    orderBox: {
+        flexDirection: "row",
+        marginLeft: 30,
+    },
+    orderQuantityContainer: {
+        width: 64,
+        height: 28,
+        backgroundColor: "#ff8c29",
+        borderRadius: 20,
+        alignItems: "center",
+        justifyContent: "center",
+        marginLeft: 4
     }
 });
 

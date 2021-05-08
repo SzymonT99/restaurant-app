@@ -44,6 +44,7 @@ export default class DrawerNavigator extends Component {
         AsyncStorage.setItem('password', '');
       }
       AsyncStorage.setItem('userId', '');
+      AsyncStorage.setItem('orderId', '');
       navigation.navigate("Login")
     });
   }
@@ -52,10 +53,10 @@ export default class DrawerNavigator extends Component {
     if (login !== null) {
       if (login.lenght > 10) {
         return login.substring(0, 10) + "...";
-     }
-     else {
-       return login;
-     }
+      }
+      else {
+        return login;
+      }
     }
   }
 
@@ -86,7 +87,7 @@ export default class DrawerNavigator extends Component {
                 buttonStyle={styles.editProfileBtn}
                 onPress={() => { props.navigation.navigate("UserSettings") }} />
             </View>
-            <View style={{ justifyContent: "center", paddingRight: 15}}>
+            <View style={{ justifyContent: "center", paddingRight: 15 }}>
               <Image
                 style={styles.logoStyle}
                 source={require('../images/logo-white.png')}
@@ -204,21 +205,24 @@ export default class DrawerNavigator extends Component {
     const Drawer = createDrawerNavigator();
     return (
       <Drawer.Navigator
-        initialRouteName="MenuStack"
+        initialRouteName="Login"
         drawerContent={(props) => this.DrawerContent(props)}
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
-        <Drawer.Screen name='MenuStack' component={MenuStackNavigator} />
+        <Drawer.Screen name='MenuStack' component={MenuStackNavigator}/>
         <Drawer.Screen name='Basket' component={BasketScreen}
-        unmountOnBlur={true} options={{ unmountOnBlur: true}} />
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen}
-        unmountOnBlur={true} options={{ unmountOnBlur: true}} />
-        <Drawer.Screen name='Favourite' component={FavouriteScreen} 
-        unmountOnBlur={true} options={{ unmountOnBlur: true}}/>
-        <Drawer.Screen name='Reservation' component={ReservationScreen} />
-        <Drawer.Screen name='AboutRestaurant' component={AboutRestaurantScreen} />
-        <Drawer.Screen name='UserSettings' component={UserSettingsScreen}/>
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='Favourite' component={FavouriteScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='Reservation' component={ReservationScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='AboutRestaurant' component={AboutRestaurantScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+        <Drawer.Screen name='UserSettings' component={UserSettingsScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true }} />
         <Drawer.Screen name='Register' component={RegisterScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
       </Drawer.Navigator>

@@ -4,6 +4,7 @@ import { SearchBar } from 'react-native-elements';
 import Header from "../components/Header";
 import SpecialOfferElement from "../components/SpecialOfferElement";
 import CategoryElement from "../components/CategoryElement";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export class CategoryScreen extends Component {
 
@@ -13,14 +14,32 @@ export class CategoryScreen extends Component {
             search: '',
             searchedCategory: [],
             categories: null,
-            specialOffers: null
+            specialOffers: null,
+            orderQuantity: 0
         }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({orderQuantity: responseJson})
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    componentWillUnmount() {
+        console.log("xddddddddddddddddddddddddd")
     }
 
     getCategoriesFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/categories'
+                'http://192.168.0.153:8080/restaurant/categories'
             );
             let responseJson = await response.json();
             this.setState({
@@ -35,7 +54,7 @@ export class CategoryScreen extends Component {
     getSpecialOffersFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu/special-offer'
+                'http://192.168.0.153:8080/restaurant/menu/special-offer'
             );
             let responseJson = await response.json();
             this.setState({
@@ -49,6 +68,7 @@ export class CategoryScreen extends Component {
     componentDidMount() {
         this.getCategoriesFromApi();
         this.getSpecialOffersFromApi();
+        this.getOrderQuantity();
     }
 
     generateCategoryElements = () => {
@@ -104,7 +124,7 @@ export class CategoryScreen extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Menu" />
+                <Header navigation={this.props.navigation} title="Menu" orderQuantity={this.state.orderQuantity} />
                 <View style={styles.contentContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}

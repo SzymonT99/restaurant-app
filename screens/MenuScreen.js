@@ -14,7 +14,21 @@ export class MenuScreen extends Component {
             searchedMenuItems: [],
             currentUserId: 0,
             menuItems: null,
-            userLikedMenuItems: null
+            userLikedMenuItems: null,
+            orderQuantity: 0
+        }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({orderQuantity: responseJson})
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -35,7 +49,7 @@ export class MenuScreen extends Component {
         const { categoryId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-category/' + categoryId
+                'http://192.168.0.153:8080/restaurant/menu-category/' + categoryId
             );
             let responseJson = await response.json();
             this.setState({
@@ -51,7 +65,7 @@ export class MenuScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
+                'http://192.168.0.153:8080/restaurant/menu-like/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({
@@ -85,6 +99,15 @@ export class MenuScreen extends Component {
     componentDidMount() {
         this.getMenuByCategoryId();
         this.getUserId();
+        this.getOrderQuantity();
+        this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+        this.props.navigation.addListener('blur', () => {
+            clearInterval(this.interval);
+        })
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     generateMenuElements = () => {
@@ -120,7 +143,7 @@ export class MenuScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} />
+                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity}/>
                 <ImageBackground source={{ uri: image }} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}

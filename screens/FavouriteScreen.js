@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ImageBackground, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ImageBackground, ScrollView, RefreshControl } from "react-native";
 import Header from "../components/Header";
 import MenuElement from "../components/MenuElement";
 import { SearchBar } from 'react-native-elements';
@@ -13,7 +13,22 @@ export class FavouriteScreen extends Component {
             search: '',
             searchedMenuItems: [],
             currentUserId: 0,
-            likedMenuItems: []
+            likedMenuItems: [],
+            orderQuantity: 0,
+            refreshing: false
+        }
+    }
+
+    getOrderQuantity = async () => {
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let response = await fetch(
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+            );
+            let responseJson = await response.json();
+            this.setState({ orderQuantity: responseJson })
+        } catch (error) {
+            console.error(error);
         }
     }
 
@@ -34,7 +49,7 @@ export class FavouriteScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/favourite-menu/user/' + currentUserId
+                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({
@@ -84,18 +99,29 @@ export class FavouriteScreen extends Component {
         return menuLayout;
     }
 
-    componentDidMount() {
-        this.getUserId();
+    wait = (timeout) => {
+        return new Promise(resolve => {
+          setTimeout(resolve, timeout);
+        });
+      }
+
+    onRefresh = () => {
+        this.setState({ refreshing: true });
+        this.wait(1000).then(() => {
+            this.setState({ refreshing: false });
+            this.getLikedMenuItems();
+        });
     }
 
-    componentDidCatch() {
+    componentDidMount() {
         this.getUserId();
+        this.getOrderQuantity();
     }
 
     render() {
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Ulubione" />
+                <Header navigation={this.props.navigation} title="Ulubione" orderQuantity={this.state.orderQuantity} />
                 <ImageBackground source={require('../images/table-with-dishes.jpg')} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
@@ -117,7 +143,7 @@ export class FavouriteScreen extends Component {
                         : ""} </Text>
                 </View>
                 <View style={styles.contentContainer}>
-                    <ScrollView>
+                    <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
                         {this.state.likedMenuItems !== null
                             ? this.generateMenuLiked()
                             : <ActivityIndicator size="large" />}

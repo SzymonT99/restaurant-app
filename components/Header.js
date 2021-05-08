@@ -4,9 +4,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Badge } from 'react-native-elements'
 
-export default function Header({ comeBack, title, navigation }) {
-
-    //let comeBack = (pcomeBack === undefined) ? false : true;
+export default function Header({ orderQuantity, comeBack, title, navigation }) {
 
     return (
         <View style={styles.header}>
@@ -24,7 +22,7 @@ export default function Header({ comeBack, title, navigation }) {
                     <Badge
                         textStyle={styles.badgeTextStyle}
                         badgeStyle={styles.badgeStyle}
-                        value={20}
+                        value={orderQuantity}
                         containerStyle={{ position: 'absolute', top: -4, right: -4 }}
                     />
                 </View>

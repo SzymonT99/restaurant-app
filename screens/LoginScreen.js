@@ -23,10 +23,10 @@ export class LoginScreen extends Component {
 
     async componentDidMount() {
         let rememberedLogin = await AsyncStorage.getItem('login');
-        this.setState({login: rememberedLogin === null ? '' : rememberedLogin});
+        this.setState({ login: rememberedLogin === null ? '' : rememberedLogin });
 
         let rememberedPassword = await AsyncStorage.getItem('password');
-        this.setState({password: rememberedPassword === null ? '' : rememberedPassword});
+        this.setState({ password: rememberedPassword === null ? '' : rememberedPassword });
     }
 
     checkCompletionForm = () => {
@@ -57,7 +57,7 @@ export class LoginScreen extends Component {
         const { login, password } = this.state;
         try {
             // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user/login', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user/login', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -71,12 +71,13 @@ export class LoginScreen extends Component {
             let loginStatus = await response.status;
 
             if (loginStatus === 200) {
-                let id = await response.json();
+                let userId = await response.json();
                 AsyncStorage.setItem('login', this.state.login);
                 AsyncStorage.setItem('password', this.state.password);
-                AsyncStorage.setItem('userId', String(id));
-                this.setState({warning: ''});
-                this.props.navigation.navigate("Category");
+                AsyncStorage.setItem('userId', String(userId));
+                this.getCurrentOrderId(userId);
+                this.setState({ warning: '' });
+                this.props.navigation.navigate("MenuStack");
                 ToastAndroid.show("Pomyślnie zalogowano!", ToastAndroid.SHORT);
             }
             else if (loginStatus === 401) {
@@ -86,6 +87,18 @@ export class LoginScreen extends Component {
                 this.setState({ warning: "Konto zostało zablokowane" })
             }
 
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
+    getCurrentOrderId = async (userId) => {
+        try {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/order-create/' + userId);
+            let currentOrderId = await response.json();
+            AsyncStorage.setItem('orderId', String(currentOrderId));
+            console.log("---- orderId: " + currentOrderId)
         }
         catch (error) {
             console.error(error);
@@ -151,9 +164,9 @@ export class LoginScreen extends Component {
                                     () => {
                                         if (this.checkCompletionForm()) {
 
-                                            this.state.rememberData === true 
-                                            ? AsyncStorage.setItem('rememberUserData', 'true')
-                                            : AsyncStorage.setItem('rememberUserData', 'false');
+                                            this.state.rememberData === true
+                                                ? AsyncStorage.setItem('rememberUserData', 'true')
+                                                : AsyncStorage.setItem('rememberUserData', 'false');
 
                                             this.authorizeUser();
                                         }
