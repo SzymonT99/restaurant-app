@@ -25,8 +25,8 @@ export default class MenuElement extends Component {
     };
 
     formatCurrentName = (text) => {
-        if (text.length > 22) {
-            return text.substr(0, 22) + "...";
+        if (text.length > 20) {
+            return text.substr(0, 20) + "...";
         }
         else return text;
     }

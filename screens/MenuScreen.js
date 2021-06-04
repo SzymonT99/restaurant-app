@@ -101,9 +101,6 @@ export class MenuScreen extends Component {
         this.getUserId();
         this.getOrderQuantity();
         this.interval = setInterval(() => this.getOrderQuantity(), 1000);
-        this.props.navigation.addListener('blur', () => {
-            clearInterval(this.interval);
-        })
     }
 
     componentWillUnmount() {
@@ -158,11 +155,7 @@ export class MenuScreen extends Component {
                     />
                 </ImageBackground>
                 <View style={styles.infoBox}>
-                    <Text style={styles.infoText}>{this.state.menuItems !== null
-                        ? (this.state.menuItems.length > 10 || this.state.menuItems.length === 0
-                            ? this.state.menuItems.length + " pozycji"
-                            : this.state.menuItems.length + " pozycje")
-                        : ""} </Text>
+                    <Text style={styles.infoText}>{"Pozyzje: " + (this.state.menuItems !== null ? this.state.menuItems.length : "0")}</Text>
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView>
