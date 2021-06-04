@@ -74,7 +74,6 @@ export class RegisterScreen extends Component {
             status = false;
         }
         else {
-            alert(this.validateLogin(login))
             if (!this.validateLogin(login)) {
                 this.setState({loginInputWarning: 'Login powinien mieć min. 4 a max. 20 znaków'})
                 status = false;

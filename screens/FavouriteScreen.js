@@ -116,8 +116,13 @@ export class FavouriteScreen extends Component {
     componentDidMount() {
         this.getUserId();
         this.getOrderQuantity();
+        this.interval = setInterval(() => this.getOrderQuantity(), 1000);
     }
 
+    componentWillUnmount() {
+        clearInterval(this.interval);
+    }
+    
     render() {
         return (
             <View style={styles.container}>
@@ -136,11 +141,7 @@ export class FavouriteScreen extends Component {
                     />
                 </ImageBackground>
                 <View style={styles.infoBox}>
-                    <Text style={styles.infoText}>{this.state.likedMenuItems !== null
-                        ? (this.state.likedMenuItems.length > 10 || this.state.likedMenuItems.length === 0
-                            ? this.state.likedMenuItems.length + " pozycji"
-                            : this.state.likedMenuItems.length + " pozycje")
-                        : ""} </Text>
+                    <Text style={styles.infoText}>{"Pozyzje: " + (this.state.likedMenuItems ? this.state.likedMenuItems.length : "0")}</Text>
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>

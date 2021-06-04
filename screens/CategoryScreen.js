@@ -32,10 +32,6 @@ export class CategoryScreen extends Component {
         }
     }
 
-    componentWillUnmount() {
-        console.log("xddddddddddddddddddddddddd")
-    }
-
     getCategoriesFromApi = async () => {
         try {
             let response = await fetch(
