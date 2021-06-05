@@ -42,7 +42,7 @@ export default class MenuElement extends Component {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
             await fetch(
-                `http://192.168.0.153:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.152:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -61,7 +61,7 @@ export default class MenuElement extends Component {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
             await fetch(
-                `http://192.168.0.153:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.152:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'DELETE',
                 headers: {
                     Accept: 'application/json',
@@ -81,7 +81,7 @@ export default class MenuElement extends Component {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
             await fetch(
-                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -100,7 +100,7 @@ export default class MenuElement extends Component {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
             await fetch(
-                `http://192.168.0.153:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.152:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'DELETE',
                 headers: {
                     Accept: 'application/json',

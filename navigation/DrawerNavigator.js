@@ -14,6 +14,7 @@ import { Button, Avatar } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TouchableOpacity } from "react-native";
 
 export default class DrawerNavigator extends Component {
 
@@ -80,12 +81,10 @@ export default class DrawerNavigator extends Component {
                 containerStyle={{ marginTop: 30 }}
               />
               <Text style={styles.userNameText}>{this.reduceUserName(this.state.currentLogin)}</Text>
-              <Button
-                title="Edytuj profil"
-                type="clear"
-                titleStyle={styles.editProfileText}
-                buttonStyle={styles.editProfileBtn}
-                onPress={() => { props.navigation.navigate("UserSettings") }} />
+              <TouchableOpacity style={styles.editProfileBtn}
+                onPress={() => { props.navigation.navigate("UserSettings") }}>
+                <Text style={styles.editProfileText}>Edytuj profil</Text>
+              </TouchableOpacity>
             </View>
             <View style={{ justifyContent: "center", paddingRight: 15 }}>
               <Image
@@ -210,7 +209,7 @@ export default class DrawerNavigator extends Component {
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
-        <Drawer.Screen name='MenuStack' component={MenuStackNavigator}/>
+        <Drawer.Screen name='MenuStack' component={MenuStackNavigator} />
         <Drawer.Screen name='Basket' component={BasketScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen}

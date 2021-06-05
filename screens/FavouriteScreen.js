@@ -23,7 +23,7 @@ export class FavouriteScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({ orderQuantity: responseJson })
@@ -49,7 +49,7 @@ export class FavouriteScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + currentUserId
+                'http://192.168.0.152:8080/restaurant/favourite-menu/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({

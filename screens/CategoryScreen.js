@@ -23,7 +23,7 @@ export class CategoryScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({orderQuantity: responseJson})
@@ -35,7 +35,7 @@ export class CategoryScreen extends Component {
     getCategoriesFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/categories'
+                'http://192.168.0.152:8080/restaurant/categories'
             );
             let responseJson = await response.json();
             this.setState({
@@ -50,7 +50,7 @@ export class CategoryScreen extends Component {
     getSpecialOffersFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu/special-offer'
+                'http://192.168.0.152:8080/restaurant/menu/special-offer'
             );
             let responseJson = await response.json();
             this.setState({

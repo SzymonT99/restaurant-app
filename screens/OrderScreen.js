@@ -16,7 +16,7 @@ export class OrderScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({orderQuantity: responseJson})

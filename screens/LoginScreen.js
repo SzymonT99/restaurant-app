@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { View, Text, StyleSheet, ImageBackground, ToastAndroid } from "react-native";
-import { Input, Button } from 'react-native-elements';
+import { Input } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CheckBox from '@react-native-community/checkbox';
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -21,12 +21,16 @@ export class LoginScreen extends Component {
         }
     }
 
-    async componentDidMount() {
+    readDataFromStorage = async () => {
         let rememberedLogin = await AsyncStorage.getItem('login');
         this.setState({ login: rememberedLogin === null ? '' : rememberedLogin });
 
         let rememberedPassword = await AsyncStorage.getItem('password');
         this.setState({ password: rememberedPassword === null ? '' : rememberedPassword });
+    }
+
+    componentDidMount() {
+        this.readDataFromStorage();
     }
 
     checkCompletionForm = () => {
@@ -53,16 +57,33 @@ export class LoginScreen extends Component {
 
     }
 
+    getCurrentOrderId = async (userId, token) => {
+        try {
+            let response = await fetch('http://192.168.0.152:8080/restaurant/order-create/' + userId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
+            let currentOrderId = await response.json();
+            AsyncStorage.setItem('orderId', String(currentOrderId));
+            console.log("---- orderId: " + currentOrderId)
+        }
+        catch (error) {
+            console.error(error);
+        }
+    }
+
     authorizeUser = async () => {
         const { login, password } = this.state;
         try {
             // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.153:8080/restaurant/user/login', {
+            let response = await fetch('http://192.168.0.152:8080/restaurant/user/login', {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
+                headers: new Headers({
                     'Content-Type': 'application/json'
-                },
+                }),
                 body: JSON.stringify({
                     login: login,
                     password: password
@@ -71,34 +92,23 @@ export class LoginScreen extends Component {
             let loginStatus = await response.status;
 
             if (loginStatus === 200) {
-                let userId = await response.json();
-                AsyncStorage.setItem('login', this.state.login);
-                AsyncStorage.setItem('password', this.state.password);
+                let json = await response.json();
+                let userId = json.userId;
+                let token = json.token;
+                AsyncStorage.setItem('login', login);
+                AsyncStorage.setItem('password', password);
                 AsyncStorage.setItem('userId', String(userId));
-                this.getCurrentOrderId(userId);
+                AsyncStorage.setItem('token', token);
+                this.getCurrentOrderId(userId, token);
                 this.setState({ warning: '' });
                 this.props.navigation.navigate("MenuStack");
                 ToastAndroid.show("Pomyślnie zalogowano!", ToastAndroid.SHORT);
             }
-            else if (loginStatus === 401) {
-                this.setState({ warning: "Nieprawidłowy login lub hasło" })
-            }
             else {
-                this.setState({ warning: "Konto zostało zablokowane" })
+                let json = await response.json();
+                let errMessage = json.content;
+                this.setState({ warning: errMessage })
             }
-
-        }
-        catch (error) {
-            console.error(error);
-        }
-    }
-
-    getCurrentOrderId = async (userId) => {
-        try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/order-create/' + userId);
-            let currentOrderId = await response.json();
-            AsyncStorage.setItem('orderId', String(currentOrderId));
-            console.log("---- orderId: " + currentOrderId)
         }
         catch (error) {
             console.error(error);
@@ -176,13 +186,21 @@ export class LoginScreen extends Component {
                             </TouchableOpacity>
                             <View style={styles.registerInformation}>
                                 <Text style={{ color: "#FFFFFF", fontWeight: "bold" }}>Nie posiadasz konta?</Text>
-                                <Button
-                                    title="Zarejestruj się"
-                                    type="clear"
-                                    titleStyle={styles.registerLinkText}
-                                    buttonStyle={styles.registerLink}
-                                    onPress={() => this.props.navigation.navigate('Register')} />
+                                <TouchableOpacity
+                                    style={styles.registerLink}
+                                    onPress={() => this.props.navigation.navigate('Register')}>
+                                    <Text style={styles.registerLinkText}>Zarejestruj się</Text>
+                                </TouchableOpacity>
                             </View>
+                            <TouchableOpacity
+                                style={styles.guestLink}
+                                onPress={
+                                    () => {
+                                        this.props.navigation.navigate('MenuStack')
+                                        AsyncStorage.setItem('guest', 'true');
+                                    }}>
+                                <Text style={styles.guestText}>Zaloguj się jako gość</Text>
+                            </TouchableOpacity>
                         </View>
                     </View>
                 </ImageBackground>
@@ -236,7 +254,7 @@ const styles = StyleSheet.create({
         marginTop: 15,
         borderRadius: 20,
         backgroundColor: "#ff8c29",
-        width: "80%",
+        width: "85%",
         height: 50,
         alignItems: "center",
         justifyContent: "center"
@@ -270,4 +288,16 @@ const styles = StyleSheet.create({
         marginLeft: 3,
         padding: 0,
     },
+    guestLink: {
+        marginTop: 50,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    guestText: {
+        color: "#ff8c29",
+        fontWeight: "bold",
+        fontFamily: "Roboto",
+        fontSize: 18,
+        textDecorationLine: "underline"
+    }
 });

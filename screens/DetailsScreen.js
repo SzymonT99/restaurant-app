@@ -25,7 +25,7 @@ export class DetailsScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({orderQuantity: responseJson})
@@ -38,7 +38,7 @@ export class DetailsScreen extends Component {
         const { detailsId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu/details/' + detailsId
+                'http://192.168.0.152:8080/restaurant/menu/details/' + detailsId
             );
             let responseJson = await response.json();
             this.setState({
@@ -77,7 +77,7 @@ export class DetailsScreen extends Component {
         const { currentUserId, menuItemDetails, comment, rate } = this.state;
         let detailsId = menuItemDetails.details.detailsId;
         try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/add-review', {
+            let response = await fetch('http://192.168.0.152:8080/restaurant/add-review', {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
@@ -120,7 +120,7 @@ export class DetailsScreen extends Component {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
             await fetch(
-                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'POST',
                 headers: {
                     Accept: 'application/json',
