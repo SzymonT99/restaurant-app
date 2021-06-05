@@ -38,7 +38,23 @@ export default class DrawerNavigator extends Component {
     clearInterval(this.interval);
   }
 
-  logOut = (navigation) => {
+  logOut = async (navigation) => {
+
+    try {
+      let userId = await AsyncStorage.getItem('userId');
+      let token = await AsyncStorage.getItem('token');
+      await fetch(
+        'http://192.168.0.153:8080/restaurant/user/logout' + userId, {
+        headers: new Headers({
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+          'UserId': userId
+        }),
+      });
+    } catch (error) {
+      console.error(error);
+    }
+
     AsyncStorage.getItem('rememberUserData').then((value) => {
       if (value === 'false') {
         AsyncStorage.setItem('login', '');

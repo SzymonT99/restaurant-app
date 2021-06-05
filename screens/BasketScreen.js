@@ -10,7 +10,6 @@ export class BasketScreen extends Component {
         super(props);
         this.state = {
             orderQuantity: 0,
-            currentUserId: 0,
             userLikedMenuItems: null,
             orderItems: null,
             fullPrice: 0.0
@@ -20,9 +19,16 @@ export class BasketScreen extends Component {
     getOrderQuantity = async () => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
             this.setState({ orderQuantity: responseJson })
         } catch (error) {
@@ -30,25 +36,18 @@ export class BasketScreen extends Component {
         }
     }
 
-    getUserId = async () => {
-        try {
-            let id = await AsyncStorage.getItem('userId');
-            id = parseInt(id);
-            if (id !== 0) {
-                this.setState({ currentUserId: id })
-            }
-            this.getUserLikedMenuItems();
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     getUserLikedMenuItems = async () => {
-        const { currentUserId } = this.state;
+        let userId = await AsyncStorage.getItem('userId');
+        let token = await AsyncStorage.getItem('token');
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
-            );
+                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId,  {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
             let responseJson = await response.json();
             this.setState({
                 userLikedMenuItems: responseJson,
@@ -60,10 +59,17 @@ export class BasketScreen extends Component {
 
     getUserOrderItems = async () => {
         let orderId = await AsyncStorage.getItem('orderId');
+        let token = await AsyncStorage.getItem('token');
+        let userId = await AsyncStorage.getItem('userId');
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
             let responseJson = await response.json();
             this.setState({
                 orderItems: responseJson,
@@ -116,15 +122,15 @@ export class BasketScreen extends Component {
     componentDidMount() {
         this.getUserOrderItems();
         this.getOrderQuantity();
-        this.getUserId();
-        this.interval = setInterval(() => {
-            this.getOrderQuantity();
-            this.getUserOrderItems();
-        }, 1000);
+        this.getUserLikedMenuItems();
+        // this.interval = setInterval(() => {
+        //     this.getOrderQuantity();
+        //     this.getUserOrderItems();
+        // }, 1000);
     }
 
     componentWillUnmount() {
-        clearInterval(this.interval);
+        //clearInterval(this.interval);
     }
 
     render() {
@@ -134,14 +140,14 @@ export class BasketScreen extends Component {
                 <View style={styles.infoBox}>
                     <Text style={[styles.infoText, { marginLeft: 10 }]}>{"Dodanych pozycji: " + this.state.orderQuantity}</Text>
                     <Text style={[styles.infoText, { marginRight: 10 }]}>{"Koszt: " + 
-                    (String(this.state.fullPrice).slice(-1) !== "0" ? this.state.fullPrice  + "0" : this.state.fullPrice)
+                    (/\.[0-9]{1}$/.test(String(this.state.fullPrice)) ? this.state.fullPrice  + "0" : this.state.fullPrice)
                     + " zł"}</Text>
                 </View>
                 <View style={styles.contentContainer}>
-                    <ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         {this.state.orderItems !== null && this.state.userLikedMenuItems !== null
                             ? this.generateOrderElements()
-                            : <ActivityIndicator size="large" />}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 250}}/>}
                     </ScrollView>
                 </View>
             </View>
