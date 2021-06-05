@@ -21,7 +21,7 @@ export class BasketScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({ orderQuantity: responseJson })
@@ -47,7 +47,7 @@ export class BasketScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-like/user/' + currentUserId
+                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({
@@ -62,7 +62,7 @@ export class BasketScreen extends Component {
         let orderId = await AsyncStorage.getItem('orderId');
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/' + orderId
+                'http://192.168.0.152:8080/restaurant/order/' + orderId
             );
             let responseJson = await response.json();
             this.setState({
