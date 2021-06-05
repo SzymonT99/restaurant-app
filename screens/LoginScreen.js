@@ -59,7 +59,7 @@ export class LoginScreen extends Component {
 
     getCurrentOrderId = async (userId, token) => {
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/order-create/' + userId, {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/order-create/' + userId, {
                 headers: new Headers({
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token,
@@ -79,7 +79,7 @@ export class LoginScreen extends Component {
         const { login, password } = this.state;
         try {
             // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user/login', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user/login', {
                 method: 'POST',
                 headers: new Headers({
                     'Content-Type': 'application/json'
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
         marginTop: 40,
     },
     inputStyle: {
-        width: "80%",
+        width: "85%",
         color: "#FFFFFF",
     },
     checkbox: {

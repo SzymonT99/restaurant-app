@@ -13,7 +13,6 @@ export class DetailsScreen extends Component {
         super(props);
         this.state = {
             menuItemDetails: null,
-            currentUserId: null,
             comment: '',
             rate: 0.0,
             commentWarning: false,
@@ -24,11 +23,18 @@ export class DetailsScreen extends Component {
     getOrderQuantity = async () => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
-            this.setState({orderQuantity: responseJson})
+            this.setState({ orderQuantity: responseJson })
         } catch (error) {
             console.error(error);
         }
@@ -38,7 +44,7 @@ export class DetailsScreen extends Component {
         const { detailsId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu/details/' + detailsId
+                'http://192.168.0.153:8080/restaurant/menu/details/' + detailsId
             );
             let responseJson = await response.json();
             this.setState({
@@ -74,17 +80,20 @@ export class DetailsScreen extends Component {
     }
 
     addComment = async () => {
-        const { currentUserId, menuItemDetails, comment, rate } = this.state;
+        const { menuItemDetails, comment, rate } = this.state;
         let detailsId = menuItemDetails.details.detailsId;
+        let userId = await AsyncStorage.getItem('userId');
+        let token = await AsyncStorage.getItem('token');
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/add-review', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/add-review', {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
                 body: JSON.stringify({
-                    userId: currentUserId,
+                    userId: parseInt(userId),
                     detailsId: detailsId,
                     comment: comment,
                     rate: rate
@@ -105,27 +114,20 @@ export class DetailsScreen extends Component {
         }
     }
 
-    getUserId = async () => {
-        try {
-            const id = await AsyncStorage.getItem('userId');
-            if (id !== '') {
-                this.setState({ currentUserId: parseInt(id) })
-            }
-        } catch (error) {
-        }
-    };
-
     addItemToBasket = async (menuItemId) => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             await fetch(
-                `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                })
             });
             ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
             this.getDetailsById();  // aktualizacja statystyk - liczby zamówień elementu menu
@@ -138,7 +140,6 @@ export class DetailsScreen extends Component {
 
     componentDidMount() {
         this.getDetailsById();
-        this.getUserId();
         this.getOrderQuantity();
     }
 
@@ -147,12 +148,11 @@ export class DetailsScreen extends Component {
         const { menuItemDetails } = this.state;
 
         return (
-            <ScrollView
-                ref={(view) => { this.scrollView = view; }}
+            <View
                 style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title="Szczegóły" orderQuantity={this.state.orderQuantity}/>
+                <Header comeBack={true} navigation={this.props.navigation} title="Szczegóły" orderQuantity={this.state.orderQuantity} />
                 {menuItemDetails !== null
-                    ? <View>
+                    ? <ScrollView ref={(view) => { this.scrollView = view; }} showsVerticalScrollIndicator={false}>
                         <View>
                             <Image style={styles.imageStyle} source={{ uri: menuItemDetails.details.detailedImage }} />
                             <View style={[styles.statsBox, { top: 0 }]}>
@@ -209,7 +209,7 @@ export class DetailsScreen extends Component {
                                         imageSize={20}
                                         style={styles.ratingStyle}
                                         startingValue={1}
-                                        onFinishRating={(num) => this.setState({rate: num})}
+                                        onFinishRating={(num) => this.setState({ rate: num })}
                                     />
                                 </View>
                                 <View style={{ marginTop: 5, borderBottomWidth: 1 }} />
@@ -230,22 +230,23 @@ export class DetailsScreen extends Component {
                                         if (this.state.comment !== "") {
                                             this.addComment();
                                             this.setState({
-                                                 commentWarning: false,
-                                                 comment: ''
+                                                commentWarning: false,
+                                                comment: ''
                                             })
 
                                         }
                                         else {
                                             this.setState({ commentWarning: true })
-                                        }}
+                                        }
+                                    }
                                     }>
                                     <Icon name="send" color="#FFFFFF" size={26} />
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </View>
-                    : <ActivityIndicator size="large" />}
-            </ScrollView>
+                    </ScrollView>
+                    : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 250}}/>}
+            </View>
 
         );
     }

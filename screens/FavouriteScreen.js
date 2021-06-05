@@ -23,7 +23,7 @@ export class FavouriteScreen extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
             );
             let responseJson = await response.json();
             this.setState({ orderQuantity: responseJson })
@@ -49,7 +49,7 @@ export class FavouriteScreen extends Component {
         const { currentUserId } = this.state;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/favourite-menu/user/' + currentUserId
+                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + currentUserId
             );
             let responseJson = await response.json();
             this.setState({
@@ -144,7 +144,8 @@ export class FavouriteScreen extends Component {
                     <Text style={styles.infoText}>{"Pozyzje: " + (this.state.likedMenuItems ? this.state.likedMenuItems.length : "0")}</Text>
                 </View>
                 <View style={styles.contentContainer}>
-                    <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}>
+                    <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
+                    showsVerticalScrollIndicator={false}>
                         {this.state.likedMenuItems !== null
                             ? this.generateMenuLiked()
                             : <ActivityIndicator size="large" />}

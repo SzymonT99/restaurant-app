@@ -22,9 +22,16 @@ export class CategoryScreen extends Component {
     getOrderQuantity = async () => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
             let responseJson = await response.json();
             this.setState({orderQuantity: responseJson})
         } catch (error) {
@@ -35,7 +42,7 @@ export class CategoryScreen extends Component {
     getCategoriesFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/categories'
+                'http://192.168.0.153:8080/restaurant/categories'
             );
             let responseJson = await response.json();
             this.setState({
@@ -50,7 +57,7 @@ export class CategoryScreen extends Component {
     getSpecialOffersFromApi = async () => {
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu/special-offer'
+                'http://192.168.0.153:8080/restaurant/menu/special-offer'
             );
             let responseJson = await response.json();
             this.setState({
@@ -133,20 +140,21 @@ export class CategoryScreen extends Component {
                         onChangeText={(text) => this.filtrCategories(text)}
                         value={this.state.search}
                     />
-                    <ScrollView>
+                    <ScrollView showsVerticalScrollIndicator={false}>
                         <Text style={styles.offerHeader}>Dania dnia</Text>
                         <SafeAreaView>
-                            <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center">
+                            <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center"
+                            showsHorizontalScrollIndicator={false}>
                                 {this.state.specialOffers !== null
                                     ? this.generateSpecialOfferElements()
-                                    : <ActivityIndicator size="large" />}
+                                    : <ActivityIndicator size={100} color="#ff8c29" style={{marginLeft: 130}}/>}
                             </ScrollView>
                         </SafeAreaView>
                         <Text style={styles.offerHeader}>Kategorie</Text>
 
                         {this.state.categories !== null
                             ? this.generateCategoryElements()
-                            : <ActivityIndicator size="large" />}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 60}}/>}
                     </ScrollView>
                 </View>
             </View>

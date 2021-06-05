@@ -12,7 +12,6 @@ export class MenuScreen extends Component {
         this.state = {
             search: '',
             searchedMenuItems: [],
-            currentUserId: 0,
             menuItems: null,
             userLikedMenuItems: null,
             orderQuantity: 0
@@ -22,34 +21,28 @@ export class MenuScreen extends Component {
     getOrderQuantity = async () => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
-            this.setState({orderQuantity: responseJson})
+            this.setState({ orderQuantity: responseJson })
         } catch (error) {
             console.error(error);
         }
     }
 
-    getUserId = async () => {
-        try {
-            let id = await AsyncStorage.getItem('userId');
-            id = parseInt(id);
-            if (id !== 0) {
-                this.setState({ currentUserId: id })
-            }
-            this.getUserLikedMenuItems();
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     getMenuByCategoryId = async () => {
         const { categoryId } = this.props.route.params;
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-category/' + categoryId
+                'http://192.168.0.153:8080/restaurant/menu-category/' + categoryId
             );
             let responseJson = await response.json();
             this.setState({
@@ -62,11 +55,18 @@ export class MenuScreen extends Component {
     }
 
     getUserLikedMenuItems = async () => {
-        const { currentUserId } = this.state;
+        let userId = await AsyncStorage.getItem('userId');
+        let token = await AsyncStorage.getItem('token');
+        userId = parseInt(userId);
         try {
             let response = await fetch(
-                'http://192.168.0.152:8080/restaurant/menu-like/user/' + currentUserId
-            );
+                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
             this.setState({
                 userLikedMenuItems: responseJson,
@@ -82,7 +82,7 @@ export class MenuScreen extends Component {
 
         this.setState({ search: phrase });
         const reg = new RegExp("^" + phrase, "i");
-        
+
         let menuArray = [];
 
         for (let item of menuItems) {
@@ -98,7 +98,7 @@ export class MenuScreen extends Component {
 
     componentDidMount() {
         this.getMenuByCategoryId();
-        this.getUserId();
+        this.getUserLikedMenuItems();
         this.getOrderQuantity();
         this.interval = setInterval(() => this.getOrderQuantity(), 1000);
     }
@@ -140,7 +140,7 @@ export class MenuScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity}/>
+                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity} />
                 <ImageBackground source={{ uri: image }} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
@@ -161,7 +161,7 @@ export class MenuScreen extends Component {
                     <ScrollView>
                         {this.state.menuItems !== null && this.state.userLikedMenuItems !== null
                             ? this.generateMenuElements()
-                            : <ActivityIndicator size="large" />}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 80}}/>}
                     </ScrollView>
                 </View>
             </View>

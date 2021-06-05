@@ -30,7 +30,7 @@ export class UserSettingsScreen extends Component {
             let orderId = await AsyncStorage.getItem('orderId');
             let userId = await AsyncStorage.getItem('userId');
             let token = await AsyncStorage.getItem('token');
-            let response = await fetch('http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
                 headers: new Headers({
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token,
@@ -80,7 +80,7 @@ export class UserSettingsScreen extends Component {
         let password = await AsyncStorage.getItem('password');
 
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/email', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/email', {
                 method: 'PUT',
                 headers: new Headers({
                     'Content-Type': 'application/json',
@@ -115,7 +115,7 @@ export class UserSettingsScreen extends Component {
         let password = await AsyncStorage.getItem('password');
 
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/login', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/login', {
                 method: 'PUT',
                 headers: new Headers({
                     'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ export class UserSettingsScreen extends Component {
         let token = await AsyncStorage.getItem('token');
 
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/password', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/password', {
                 method: 'PUT',
                 headers: new Headers({
                     'Content-Type': 'application/json',
@@ -245,7 +245,7 @@ export class UserSettingsScreen extends Component {
         let password = await AsyncStorage.getItem('password');
 
         try {
-            let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/phone', {
+            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/phone', {
                 method: 'PUT',
                 headers: new Headers({
                     'Content-Type': 'application/json',
@@ -434,6 +434,7 @@ const styles = StyleSheet.create({
     textWarning: {
         textAlign: "center",
         fontSize: 14,
+        fontFamily: "Roboto",
         fontWeight: "bold",
         color: "#CA0000"
     },

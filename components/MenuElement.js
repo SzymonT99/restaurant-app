@@ -41,13 +41,15 @@ export default class MenuElement extends Component {
     addToFavourite = async (userId, menuItemId) => {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
+            let token = await AsyncStorage.getItem('token');
             await fetch(
-                `http://192.168.0.152:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.153:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                })
             });
             this.setState({ isLiked: true });
             ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
@@ -57,16 +59,19 @@ export default class MenuElement extends Component {
         }
     }
 
+
     removeFromFavourite = async (userId, menuItemId) => {
         try {
             const data = { userId: userId, menuItemId: menuItemId };
+            let token = await AsyncStorage.getItem('token');
             await fetch(
-                `http://192.168.0.152:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                `http://192.168.0.153:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
                 method: 'DELETE',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                })
             });
             this.setState({ isLiked: false });
             ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
@@ -80,13 +85,15 @@ export default class MenuElement extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
+            let token = await AsyncStorage.getItem('token');
             await fetch(
-                `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': this.state.userId
+                })
             });
             ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
         }
@@ -99,13 +106,15 @@ export default class MenuElement extends Component {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
             const data = { menuId: menuItemId, orderId: orderId };
+            let token = await AsyncStorage.getItem('token');
             await fetch(
-                `http://192.168.0.152:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                `http://192.168.0.153:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
                 method: 'DELETE',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                }
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': this.state.userId
+                })
             });
             ToastAndroid.show("Usunięto z koszyka", ToastAndroid.SHORT);
         }
@@ -136,7 +145,7 @@ export default class MenuElement extends Component {
                         <View style={{ flexDirection: "row" }}>
                             <View>
                                 <Text style={styles.menuItemPriceText}>{"Cena: " +
-                                    (String(this.props.menuItemPrice).slice(-1) !== "0" ? this.props.menuItemPrice + "0" : this.props.menuItemPrice)
+                                    (/\.[0-9]{1}$/.test(String(this.props.menuItemPrice)) ? this.props.menuItemPrice + "0" : this.props.menuItemPrice)
                                     + " zł"}</Text>
                                 <View style={styles.rateContainer}>
                                     <Icon name="star" color="#ff8c29" size={20} />
@@ -151,14 +160,20 @@ export default class MenuElement extends Component {
                                 </TouchableOpacity>
                                 :
                                 <View style={styles.orderBox}>
-                                    <TouchableOpacity
-                                        onPress={() => this.addItemToBasket(this.props.detailsId)}>
-                                        <MaterialIcon  name="add-circle-outline" color="#ff8c29" size={28} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        onPress={() => this.removeItemFromBasket(this.props.detailsId)}>
-                                        <MaterialIcon name="remove-circle-outline" color="#ff8c29" size={28} />
-                                    </TouchableOpacity>
+                                    {this.props.forHistory !== true
+                                        ?
+                                        <View style={{flexDirection: "row"}}>
+                                            <TouchableOpacity
+                                                onPress={() => this.addItemToBasket(this.props.detailsId)}>
+                                                <MaterialIcon name="add-circle-outline" color="#ff8c29" size={28} />
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={() => this.removeItemFromBasket(this.props.detailsId)}>
+                                                <MaterialIcon name="remove-circle-outline" color="#ff8c29" size={28} />
+                                            </TouchableOpacity>
+                                        </View>
+                                        : <View />
+                                    }
                                     <View style={styles.orderQuantityContainer}>
                                         <Text style={styles.basketButtonText}>{"Sztuk: " + this.props.orderItemQuantity} </Text>
                                     </View>
@@ -220,7 +235,9 @@ const styles = StyleSheet.create({
         fontFamily: "Roboto",
     },
     basketButtonStyle: {
-        marginLeft: 30,
+        position: 'absolute',
+        bottom: 6,
+        right: -2,
         width: 114,
         height: 24,
         backgroundColor: "#ff8c29",
@@ -251,7 +268,9 @@ const styles = StyleSheet.create({
     },
     orderBox: {
         flexDirection: "row",
-        marginLeft: 30,
+        position: 'absolute',
+        bottom: 6,
+        right: -2,
     },
     orderQuantityContainer: {
         width: 64,
