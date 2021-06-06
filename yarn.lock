@@ -5940,6 +5940,11 @@
   "resolved" "https://registry.npmjs.org/react-native-screens/-/react-native-screens-3.1.1.tgz"
   "version" "3.1.1"
 
+"react-native-select-dropdown@^1.0.6":
+  "integrity" "sha512-FVwllKL8rzz99XijVAOEhcS0XPhEKeprn18dO4ridEO4J2tGQZSyvswtaJ+Gl0EwVk397z/c+GgdYj8C/yRveA=="
+  "resolved" "https://registry.npmjs.org/react-native-select-dropdown/-/react-native-select-dropdown-1.0.6.tgz"
+  "version" "1.0.6"
+
 "react-native-size-matters@^0.3.1":
   "integrity" "sha512-mKOfBLIBFBcs9br1rlZDvxD5+mAl8Gfr5CounwJtxI6Z82rGrMO+Kgl9EIg3RMVf3G855a85YVqHJL2f5EDRlw=="
   "resolved" "https://registry.npmjs.org/react-native-size-matters/-/react-native-size-matters-0.3.1.tgz"

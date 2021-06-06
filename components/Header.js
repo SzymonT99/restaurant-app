@@ -4,13 +4,14 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Badge } from 'react-native-elements'
 
-export default function Header({ orderQuantity, comeBack, title, navigation }) {
+export default function Header({ orderQuantity, comeBack, title, navigation, form }) {
 
     return (
         <View style={styles.header}>
             <View style={styles.leftComponent}>
-                {comeBack == true
-                    ? <MaterialIcons name='arrow-back' size={32} onPress={() => navigation.goBack()} />
+                {comeBack == true || form == true
+                    ? <MaterialIcons name='arrow-back' size={32}
+                        onPress={() => navigation.navigate(form == true ? "Basket" : "Category")} />
                     : <Icon name='menu' size={32} onPress={() => navigation.openDrawer()} />}
             </View>
             <View>
@@ -18,13 +19,20 @@ export default function Header({ orderQuantity, comeBack, title, navigation }) {
             </View>
             <View style={styles.rightComponent}>
                 <View>
-                    <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")} />
-                    <Badge
-                        textStyle={styles.badgeTextStyle}
-                        badgeStyle={styles.badgeStyle}
-                        value={orderQuantity}
-                        containerStyle={{ position: 'absolute', top: -4, right: -4 }}
-                    />
+                    {
+                        form !== true
+                            ? <View>
+                                <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")} />
+                                <Badge
+                                    textStyle={styles.badgeTextStyle}
+                                    badgeStyle={styles.badgeStyle}
+                                    value={orderQuantity}
+                                    containerStyle={{ position: 'absolute', top: -4, right: -4 }}
+                                />
+                            </View>
+                            : <View />
+                    }
+
                 </View>
             </View>
         </View>
