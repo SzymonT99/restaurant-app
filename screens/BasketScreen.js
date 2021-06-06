@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import Header from "../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MenuElement from "../components/MenuElement";
@@ -41,13 +41,13 @@ export class BasketScreen extends Component {
         let token = await AsyncStorage.getItem('token');
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId,  {
-                    headers: new Headers({
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'UserId': userId
-                    }),
-                });
+                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
             this.setState({
                 userLikedMenuItems: responseJson,
@@ -64,12 +64,12 @@ export class BasketScreen extends Component {
         try {
             let response = await fetch(
                 'http://192.168.0.153:8080/restaurant/order/' + orderId, {
-                    headers: new Headers({
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'UserId': userId
-                    }),
-                });
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
             this.setState({
                 orderItems: responseJson,
@@ -88,7 +88,7 @@ export class BasketScreen extends Component {
         }
         sumOfPrice = Math.round(sumOfPrice * 100) / 100;
 
-        this.setState({fullPrice: sumOfPrice})
+        this.setState({ fullPrice: sumOfPrice })
     }
 
     generateOrderElements = () => {
@@ -139,16 +139,20 @@ export class BasketScreen extends Component {
                 <Header navigation={this.props.navigation} title="Koszyk" orderQuantity={this.state.orderQuantity} />
                 <View style={styles.infoBox}>
                     <Text style={[styles.infoText, { marginLeft: 10 }]}>{"Dodanych pozycji: " + this.state.orderQuantity}</Text>
-                    <Text style={[styles.infoText, { marginRight: 10 }]}>{"Koszt: " + 
-                    (/\.[0-9]{1}$/.test(String(this.state.fullPrice)) ? this.state.fullPrice  + "0" : this.state.fullPrice)
-                    + " zł"}</Text>
+                    <Text style={[styles.infoText, { marginRight: 10 }]}>{"Koszt: " +
+                        (/\.[0-9]{1}$/.test(String(this.state.fullPrice)) ? this.state.fullPrice + "0" : this.state.fullPrice)
+                        + " zł"}</Text>
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView showsVerticalScrollIndicator={false}>
                         {this.state.orderItems !== null && this.state.userLikedMenuItems !== null
                             ? this.generateOrderElements()
-                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 250}}/>}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{ marginTop: 250, marginBottom: 200 }} />}
                     </ScrollView>
+                    <TouchableOpacity style={styles.confirmButton}
+                        onPress={() => this.props.navigation.navigate("Order", { sumOfPrices: this.state.fullPrice })} >
+                        <Text style={styles.confirmText}>Potwierdź zamówienie</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         );
@@ -177,5 +181,23 @@ const styles = StyleSheet.create({
         marginLeft: 12,
         marginRight: 12,
         marginTop: 10
+    },
+    confirmButton: {
+        borderRadius: 20,
+        marginTop: 6,
+        width: "74%",
+        height: 50,
+        backgroundColor: '#ff8c29',
+        alignItems: 'center',
+        justifyContent: "center",
+        alignSelf: "center",
+        marginBottom: 12
+    },
+    confirmText: {
+        fontSize: 18,
+        textAlign: "center",
+        fontWeight: "bold",
+        fontFamily: "Roboto",
+        color: "#FFFFFF"
     },
 });

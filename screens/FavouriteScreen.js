@@ -12,7 +12,6 @@ export class FavouriteScreen extends Component {
         this.state = {
             search: '',
             searchedMenuItems: [],
-            currentUserId: 0,
             likedMenuItems: [],
             orderQuantity: 0,
             refreshing: false
@@ -22,9 +21,16 @@ export class FavouriteScreen extends Component {
     getOrderQuantity = async () => {
         try {
             let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
-            );
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
             let responseJson = await response.json();
             this.setState({ orderQuantity: responseJson })
         } catch (error) {
@@ -32,25 +38,18 @@ export class FavouriteScreen extends Component {
         }
     }
 
-    getUserId = async () => {
-        try {
-            let id = await AsyncStorage.getItem('userId');
-            id = parseInt(id);
-            if (id !== 0) {
-                this.setState({ currentUserId: id })
-            }
-            this.getLikedMenuItems();
-        } catch (error) {
-            console.error(error);
-        }
-    };
-
     getLikedMenuItems = async () => {
-        const { currentUserId } = this.state;
+        let userId = await AsyncStorage.getItem('userId');
+        let token = await AsyncStorage.getItem('token');
         try {
             let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + currentUserId
-            );
+                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + userId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                })
+            });
             let responseJson = await response.json();
             this.setState({
                 likedMenuItems: responseJson,
@@ -101,9 +100,9 @@ export class FavouriteScreen extends Component {
 
     wait = (timeout) => {
         return new Promise(resolve => {
-          setTimeout(resolve, timeout);
+            setTimeout(resolve, timeout);
         });
-      }
+    }
 
     onRefresh = () => {
         this.setState({ refreshing: true });
@@ -114,15 +113,15 @@ export class FavouriteScreen extends Component {
     }
 
     componentDidMount() {
-        this.getUserId();
         this.getOrderQuantity();
+        this.getLikedMenuItems();
         this.interval = setInterval(() => this.getOrderQuantity(), 1000);
     }
 
     componentWillUnmount() {
         clearInterval(this.interval);
     }
-    
+
     render() {
         return (
             <View style={styles.container}>
@@ -145,7 +144,7 @@ export class FavouriteScreen extends Component {
                 </View>
                 <View style={styles.contentContainer}>
                     <ScrollView refreshControl={<RefreshControl refreshing={this.state.refreshing} onRefresh={this.onRefresh} />}
-                    showsVerticalScrollIndicator={false}>
+                        showsVerticalScrollIndicator={false}>
                         {this.state.likedMenuItems !== null
                             ? this.generateMenuLiked()
                             : <ActivityIndicator size="large" />}

@@ -20,36 +20,24 @@ export class AboutRestaurantScreen extends Component {
 	}
 
 	getOrderQuantity = async () => {
-		try {
-			let orderId = await AsyncStorage.getItem('orderId');
-			let response = await fetch(
-				'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId
-			);
-			let responseJson = await response.json();
-			this.setState({ orderQuantity: responseJson })
-		} catch (error) {
-			console.error(error);
-		}
-	}
-
-	onLoad = (event) => {
-		// log a message showing the map has been loaded
-		console.log('onLoad received : ', event);
-
-		// optionally set state
-		this.setState(
-			{
-				...this.state,
-				mapState: { ...this.state.mapState, mapLoaded: true }
-			},
-			() => {
-				// send an array of map layer information to the map
-				this.webViewLeaflet.sendMessage({
-					mapLayers
-				});
-			}
-		);
-	}
+        try {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            let response = await fetch(
+                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                headers: new Headers({
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                    'UserId': userId
+                }),
+            });
+            let responseJson = await response.json();
+            this.setState({ orderQuantity: responseJson })
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
 	componentDidMount() {
 		this.getOrderQuantity();

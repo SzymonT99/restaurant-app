@@ -10,6 +10,7 @@ import { ReservationScreen } from "../screens/ReservationScreen";
 import { AboutRestaurantScreen } from "../screens/AboutRestaurantScreen";
 import { UserSettingsScreen } from "../screens/UserSettingsScreen";
 import { RegisterScreen } from "../screens/RegisterScreen";
+import { OrderScreen } from "../screens/OrderScreen";
 import { Button, Avatar } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
@@ -225,9 +226,11 @@ export default class DrawerNavigator extends Component {
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
-        <Drawer.Screen name='MenuStack' component={MenuStackNavigator} />
+        <Drawer.Screen name='MenuStack' component={MenuStackNavigator}/>
         <Drawer.Screen name='Basket' component={BasketScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
+          <Drawer.Screen name='Order' component={OrderScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
         <Drawer.Screen name='Favourite' component={FavouriteScreen}

@@ -4,7 +4,6 @@ import Header from "../components/Header";
 import { Calendar } from 'react-native-calendars';
 import { Picker } from '@react-native-picker/picker';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ReloadInstructions } from "react-native/Libraries/NewAppScreen";
 
 const hours = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"];
 const minutes = ["5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
@@ -326,7 +325,7 @@ const styles = StyleSheet.create({
 	reservationButton: {
 		borderRadius: 20,
 		marginTop: 6,
-		width: "64%",
+		width: "74%",
 		height: 50,
 		backgroundColor: '#ff8c29',
 		alignItems: 'center',
