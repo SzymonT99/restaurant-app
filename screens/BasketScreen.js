@@ -134,7 +134,7 @@ export class BasketScreen extends Component {
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
                 menuItemIngritients={item.ingredients.join(", ")}
-                menuItemPrice={Math.round(item.price / item.quantity * 100) / 100}
+                menuItemPrice={(item.price / item.quantity).toFixed(2)}
                 menuItemRate={item.rate}
                 orderItemQuantity={item.quantity}
                 key={itemIndex} />
