@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import MenuElement from "../components/MenuElement";
 import { SearchBar } from 'react-native-elements';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export class MenuScreen extends Component {
 
@@ -14,66 +15,98 @@ export class MenuScreen extends Component {
             searchedMenuItems: [],
             menuItems: null,
             userLikedMenuItems: null,
-            orderQuantity: 0
+            orderQuantity: 0,
+            guest: false,
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+    });
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                if (this.interval !== false) {
+                    this.setState({ orderQuantity: responseJson })
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            clearInterval(this.interval);
+            this.interval = false;
+            this.props.navigation.navigate("NoInternet");
         }
     }
 
     getMenuByCategoryId = async () => {
-        const { categoryId } = this.props.route.params;
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-category/' + categoryId
-            );
-            let responseJson = await response.json();
-            this.setState({
-                menuItems: responseJson,
-                searchedMenuItems: responseJson
+        if (this.state.internetConnected) {
+            const { categoryId } = this.props.route.params;
+            let guest = false;
+            await AsyncStorage.getItem('guest').then((flag) => {
+                if (flag === 'true') {
+                    this.setState({ guest: true });
+                    guest = true;
+                }
             });
-        } catch (error) {
-            console.error(error);
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/menu-category/' + categoryId
+                );
+                let responseJson = await response.json();
+                this.setState({
+                    menuItems: responseJson,
+                    searchedMenuItems: responseJson
+                });
+                if (guest !== true) {
+                    this.getUserLikedMenuItems();
+                    this.getOrderQuantity();
+                    this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        } else {         
+            this.props.navigation.navigate("NoInternet");
         }
     }
 
     getUserLikedMenuItems = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
-        userId = parseInt(userId);
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({
-                userLikedMenuItems: responseJson,
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            userId = parseInt(userId);
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/menu-like/user/' + userId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                this.setState({
+                    userLikedMenuItems: responseJson,
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     filtrMenu = (phrase) => {
@@ -97,24 +130,30 @@ export class MenuScreen extends Component {
     }
 
     componentDidMount() {
-        this.getMenuByCategoryId();
-        this.getUserLikedMenuItems();
-        this.getOrderQuantity();
-        this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getMenuByCategoryId();
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     componentWillUnmount() {
         clearInterval(this.interval);
+        this.interval = false;
     }
 
     generateMenuElements = () => {
         const { searchedMenuItems, userLikedMenuItems } = this.state;
 
-        for (const menuItem of searchedMenuItems) {
-            menuItem.isLiked = false;
-            for (const likedItem of userLikedMenuItems) {
-                if (menuItem.menuId === likedItem.menuId) {
-                    menuItem.isLiked = true;
+        if (userLikedMenuItems !== null) {
+            for (const menuItem of searchedMenuItems) {
+                menuItem.isLiked = false;
+                for (const likedItem of userLikedMenuItems) {
+                    if (menuItem.menuId === likedItem.menuId) {
+                        menuItem.isLiked = true;
+                    }
                 }
             }
         }
@@ -140,7 +179,8 @@ export class MenuScreen extends Component {
 
         return (
             <View style={styles.container}>
-                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity} />
+                <Header comeBack={true} navigation={this.props.navigation} title={categoryName} orderQuantity={this.state.orderQuantity}
+                    noneRight={this.state.guest !== false ? true : false} />
                 <ImageBackground source={{ uri: image }} style={styles.imageContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
@@ -158,10 +198,10 @@ export class MenuScreen extends Component {
                     <Text style={styles.infoText}>{"Pozyzje: " + (this.state.menuItems !== null ? this.state.menuItems.length : "0")}</Text>
                 </View>
                 <View style={styles.contentContainer}>
-                    <ScrollView>
-                        {this.state.menuItems !== null && this.state.userLikedMenuItems !== null
+                    <ScrollView showsVerticalScrollIndicator={false}>
+                        {(this.state.menuItems !== null && this.state.userLikedMenuItems) || (this.state.menuItems !== null && this.state.guest === true)
                             ? this.generateMenuElements()
-                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 80}}/>}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{ marginTop: 80 }} />}
                     </ScrollView>
                 </View>
             </View>

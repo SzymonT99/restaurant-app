@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import { View, StyleSheet, Text, Image } from "react-native";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItem } from "@react-navigation/drawer";
 import { LoginScreen } from "../screens/LoginScreen";
-import { MenuStackNavigator } from "./MenuStackNavigator";
 import { BasketScreen } from "../screens/BasketScreen";
 import { OrdersHistoryScreen } from "../screens/OrdersHistoryScreen";
 import { FavouriteScreen } from "../screens/FavouriteScreen";
@@ -11,27 +10,38 @@ import { AboutRestaurantScreen } from "../screens/AboutRestaurantScreen";
 import { UserSettingsScreen } from "../screens/UserSettingsScreen";
 import { RegisterScreen } from "../screens/RegisterScreen";
 import { OrderScreen } from "../screens/OrderScreen";
-import { Button, Avatar } from 'react-native-elements';
+import { CategoryScreen } from "../screens/CategoryScreen";
+import { MenuScreen } from "../screens/MenuScreen";
+import { DetailsScreen } from "../screens/DetailsScreen";
+import { NoInternetScreen } from "../screens/NoInternetScreen";
+import { Avatar } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TouchableOpacity } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 
 export default class DrawerNavigator extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      currentLogin: ''
+      currentLogin: '',
+      internetConnected: true,
     }
   }
 
+  checkInternetConnection = () => NetInfo.addEventListener(state => {
+    this.setState({ internetConnected: state.isConnected });
+  });
+
   async saveUserName() {
     let value = await AsyncStorage.getItem('login')
-    this.setState({ currentLogin: value });   // TODO: budowa wydajniejszego zapisu
+    this.setState({ currentLogin: value });
   }
 
   componentDidMount() {
+    this.checkInternetConnection();
     this.interval = setInterval(() => this.saveUserName(), 1000);
   }
 
@@ -40,12 +50,12 @@ export default class DrawerNavigator extends Component {
   }
 
   logOut = async (navigation) => {
-
+    if (this.state.internetConnected) {
     try {
       let userId = await AsyncStorage.getItem('userId');
       let token = await AsyncStorage.getItem('token');
       await fetch(
-        'http://192.168.0.153:8080/restaurant/user/logout' + userId, {
+        'http://192.168.0.152:8080/restaurant/user/logout' + userId, {
         headers: new Headers({
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + token,
@@ -61,10 +71,12 @@ export default class DrawerNavigator extends Component {
         AsyncStorage.setItem('login', '');
         AsyncStorage.setItem('password', '');
       }
-      AsyncStorage.setItem('userId', '');
-      AsyncStorage.setItem('orderId', '');
-      navigation.navigate("Login")
     });
+    AsyncStorage.setItem('userId', '');
+    AsyncStorage.setItem('orderId', '');
+    AsyncStorage.setItem('guest', 'false');
+    navigation.navigate("Login");
+  } else this.props.navigation.navigate("NoInternet");
   }
 
   reduceUserName = (login) => {
@@ -123,8 +135,8 @@ export default class DrawerNavigator extends Component {
               label="Menu restauracji"
               inactiveTintColor="#FFFFFF"
               activeTintColor="#ff8c29"
-              focused={focusedRoute.name === "MenuStack" ? true : false}
-              onPress={() => { props.navigation.navigate('MenuStack') }}
+              focused={focusedRoute.name === "Category" ? true : false}
+              onPress={() => { props.navigation.navigate('Category') }}
             />
             <DrawerItem
               icon={({ color, size }) => (
@@ -223,13 +235,19 @@ export default class DrawerNavigator extends Component {
       <Drawer.Navigator
         initialRouteName="Login"
         drawerContent={(props) => this.DrawerContent(props)}
+        detachInactiveScreens={true}
       >
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
-        <Drawer.Screen name='MenuStack' component={MenuStackNavigator}/>
+        <Drawer.Screen name='Category' component={CategoryScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false}} />
+        <Drawer.Screen name='Menu' component={MenuScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
+        <Drawer.Screen name='Details' component={DetailsScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='Basket' component={BasketScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
-          <Drawer.Screen name='Order' component={OrderScreen}
+        <Drawer.Screen name='Order' component={OrderScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='OrdersHistory' component={OrdersHistoryScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
@@ -242,6 +260,8 @@ export default class DrawerNavigator extends Component {
         <Drawer.Screen name='UserSettings' component={UserSettingsScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true }} />
         <Drawer.Screen name='Register' component={RegisterScreen}
+          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
+        <Drawer.Screen name='NoInternet' component={NoInternetScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
       </Drawer.Navigator>
     );
@@ -286,7 +306,10 @@ const styles = StyleSheet.create({
     marginTop: 100,
   },
   logoStyle: {
-    width: 120,
-    height: 120,
+    position: "absolute",
+    top: 24,
+    right: 12,
+    width: 143,
+    height: 104,
   }
 });

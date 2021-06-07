@@ -3,38 +3,50 @@ import { StyleSheet, Text, View } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { Badge } from 'react-native-elements'
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default function Header({ orderQuantity, comeBack, title, navigation, form }) {
+
+
+export default function Header({ orderQuantity, comeBack, title, navigation, form, logout, noneRight }) {
+
+    function logOut(navigation) {
+        AsyncStorage.setItem('guest', 'false');
+        navigation.navigate("Login")
+    }
 
     return (
         <View style={styles.header}>
-            <View style={styles.leftComponent}>
-                {comeBack == true || form == true
-                    ? <MaterialIcons name='arrow-back' size={32}
-                        onPress={() => navigation.navigate(form == true ? "Basket" : "Category")} />
-                    : <Icon name='menu' size={32} onPress={() => navigation.openDrawer()} />}
-            </View>
+            {logout == true ? <Icon name='exit-to-app' size={38} style={{ marginLeft: 15, marginRight: -15 }} onPress={() => logOut(navigation)} /> :
+                <View style={styles.leftComponent}>
+                    {comeBack == true || form == true
+                        ? <MaterialIcons name='arrow-back' size={32}
+                            onPress={() => navigation.navigate(form == true ? "Basket" : "Category")} />
+                        : <Icon name='menu' size={32} onPress={() => navigation.openDrawer()} />}
+                </View>
+            }
             <View>
                 <Text style={styles.headerText}>{title}</Text>
             </View>
-            <View style={styles.rightComponent}>
-                <View>
-                    {
-                        form !== true
-                            ? <View>
-                                <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")} />
-                                <Badge
-                                    textStyle={styles.badgeTextStyle}
-                                    badgeStyle={styles.badgeStyle}
-                                    value={orderQuantity}
-                                    containerStyle={{ position: 'absolute', top: -4, right: -4 }}
-                                />
-                            </View>
-                            : <View />
-                    }
+            {noneRight == true ? <View /> :
+                <View style={styles.rightComponent}>
+                    <View>
+                        {
+                            form !== true
+                                ? <View>
+                                    <Icon name='cart' size={30} onPress={() => navigation.navigate("Basket")} />
+                                    <Badge
+                                        textStyle={styles.badgeTextStyle}
+                                        badgeStyle={styles.badgeStyle}
+                                        value={orderQuantity}
+                                        containerStyle={{ position: 'absolute', top: -4, right: -4 }}
+                                    />
+                                </View>
+                                : <View />
+                        }
 
+                    </View>
                 </View>
-            </View>
+            }
         </View>
     );
 }

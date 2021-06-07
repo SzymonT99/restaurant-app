@@ -5,6 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import CheckBox from '@react-native-community/checkbox';
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { ScrollView } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
 
 export class RegisterScreen extends Component {
 
@@ -25,9 +26,14 @@ export class RegisterScreen extends Component {
             repeatedPasswordInputWarning: '',
             phoneNumberInputWarning: '',
             warning: '',
-            loading: false
+            loading: false,
+            internetConnected: true,
         }
     }
+
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
 
     validateEmail = (email) => {
         const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -137,37 +143,42 @@ export class RegisterScreen extends Component {
     }
 
     createUser = async () => {
-        const { login, email, phoneNumber, password } = this.state;
-        try {
-            // należy podać swój lokalny adres ip
-            let response = await fetch('http://192.168.0.153:8080/restaurant/create-user', {
-                method: 'POST',
-                headers: {
-                    Accept: 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    login: login,
-                    email: email,
-                    phoneNumber: phoneNumber,
-                    password: password
-                })
-            });
-            let loginStatus = await response.status;
+        if (this.state.internetConnected) {
+            const { login, email, phoneNumber, password } = this.state;
+            try {
+                // należy podać swój lokalny adres ip
+                let response = await fetch('http://192.168.0.152:8080/restaurant/create-user', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        login: login,
+                        email: email,
+                        phoneNumber: phoneNumber,
+                        password: password
+                    })
+                });
+                let loginStatus = await response.status;
 
-            if (loginStatus === 201) {
-                this.setState({ warning: '' });
-                this.props.navigation.navigate("Login");
-                ToastAndroid.show("Utworzono konto!", ToastAndroid.SHORT);
+                if (loginStatus === 201) {
+                    this.setState({ loading: false })
+                    this.props.navigation.navigate("Login");
+                    ToastAndroid.show("Utworzono konto!", ToastAndroid.SHORT);
+                }
+                if (loginStatus === 403) {
+                    this.setState({ warning: "Konto o podanej nazwie już istnieje" })
+                }
             }
-            if (loginStatus === 403) {
-                this.setState({ warning: "Konto o podanej nazwie już istnieje" })
+            catch (error) {
+                console.error(error);
             }
-            this.setState({ loading: false })
-        }
-        catch (error) {
-            console.error(error);
-        }
+        } else this.props.navigation.navigate("NoInternet");
+    }
+
+    componentDidMount() {
+        this.checkInternetConnection();
     }
 
     render() {
@@ -177,11 +188,11 @@ export class RegisterScreen extends Component {
                     <ScrollView style={{ backgroundColor: "rgba(25,20,19,0.8)" }}>
                         {this.state.loading === true
                             ? <View>
-                                <View style={{marginTop: 100}}>
+                                <View style={{ marginTop: 100 }}>
                                     <Text style={styles.headingText}>REJESTRACJA</Text>
                                     <Text style={styles.subtitleText}>Trwa tworzenie konta...</Text>
                                 </View>
-                                <ActivityIndicator size={250} color="#ff8c29" style={{marginTop: 60}}/>
+                                <ActivityIndicator size={250} color="#ff8c29" style={{ marginTop: 60 }} />
                             </View>
                             : <View style={styles.registerPanel}>
                                 <View style={styles.headingStyle}>

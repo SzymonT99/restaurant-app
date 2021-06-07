@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity
 import Header from "../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MenuElement from "../components/MenuElement";
+import NetInfo from "@react-native-community/netinfo";
 
 export class BasketScreen extends Component {
 
@@ -12,71 +13,93 @@ export class BasketScreen extends Component {
             orderQuantity: 0,
             userLikedMenuItems: null,
             orderItems: null,
-            fullPrice: 0.0
+            fullPrice: 0.0,
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+    });
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                if (this.interval !== false) {
+                    this.setState({ orderQuantity: responseJson })
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            clearInterval(this.interval);
+            this.interval = false;
+            this.props.navigation.navigate("NoInternet");
         }
     }
 
     getUserLikedMenuItems = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({
-                userLikedMenuItems: responseJson,
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/menu-like/user/' + userId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                if (this.interval !== false) {
+                    this.setState({ userLikedMenuItems: responseJson });
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getUserOrderItems = async () => {
-        let orderId = await AsyncStorage.getItem('orderId');
-        let token = await AsyncStorage.getItem('token');
-        let userId = await AsyncStorage.getItem('userId');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({
-                orderItems: responseJson,
-            });
-            this.sumAllOrderItemPrice(responseJson);
-        } catch (error) {
-            console.error(error);
+        if (this.state.internetConnected) {
+            let orderId = await AsyncStorage.getItem('orderId');
+            let token = await AsyncStorage.getItem('token');
+            let userId = await AsyncStorage.getItem('userId');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                if (this.interval !== false) {
+                    this.setState({ orderItems: responseJson, });
+                }
+
+                this.sumAllOrderItemPrice(responseJson);
+            } catch (error) {
+                console.error(error);
+            }
+        } else {
+            clearInterval(this.interval);
+            this.interval = false;
+            this.props.navigation.navigate("NoInternet");
         }
     }
 
@@ -120,17 +143,24 @@ export class BasketScreen extends Component {
     }
 
     componentDidMount() {
-        this.getUserOrderItems();
-        this.getOrderQuantity();
-        this.getUserLikedMenuItems();
-        // this.interval = setInterval(() => {
-        //     this.getOrderQuantity();
-        //     this.getUserOrderItems();
-        // }, 1000);
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getUserOrderItems();
+                    this.getOrderQuantity();
+                    this.getUserLikedMenuItems();
+                    this.interval = setInterval(() => {
+                        this.getOrderQuantity();
+                        this.getUserOrderItems();
+                    }, 1000);
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     componentWillUnmount() {
-        //clearInterval(this.interval);
+        clearInterval(this.interval);
+        this.interval = false;
     }
 
     render() {
@@ -150,7 +180,11 @@ export class BasketScreen extends Component {
                             : <ActivityIndicator size={100} color="#ff8c29" style={{ marginTop: 250, marginBottom: 200 }} />}
                     </ScrollView>
                     <TouchableOpacity style={styles.confirmButton}
-                        onPress={() => this.props.navigation.navigate("Order", { sumOfPrices: this.state.fullPrice })} >
+                        onPress={() => {
+                            clearInterval(this.interval);
+                            this.interval = false;
+                            this.props.navigation.navigate("Order", { sumOfPrices: this.state.fullPrice })
+                        }} >
                         <Text style={styles.confirmText}>Potwierdź zamówienie</Text>
                     </TouchableOpacity>
                 </View>

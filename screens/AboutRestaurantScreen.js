@@ -2,10 +2,11 @@ import React, { Component } from "react";
 import { View, Text, StyleSheet, ImageBackground } from "react-native";
 import Header from "../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 const RESTAURANT_NAME = "\"Na Dziedzińcu\"";
 const ADDRESS = "Lwowska 4,33-100 Tarnów";
-const MAIL = "testRestauracja@gmail.com";
+const MAIL = "restauracja@gmail.com";
 const PHONE = "+48146960912";
 const DESCRIPTION = "Prawdziwa restauracja z wieloletnią tradycją, sięgającą 1926r.\n"
 	+ "Nasze dania wykonujemy z najwyższej jakości składników, aby nasi klienci mogli delektować się smakiem "
@@ -15,36 +16,47 @@ export class AboutRestaurantScreen extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			orderQuantity: 0
+			orderQuantity: 0,
+			internetConnected: true,
 		}
 	}
 
 	getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
-	componentDidMount() {
-		this.getOrderQuantity();
+		try {
+			let orderId = await AsyncStorage.getItem('orderId');
+			let userId = await AsyncStorage.getItem('userId');
+			let token = await AsyncStorage.getItem('token');
+			let response = await fetch(
+				'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+				headers: new Headers({
+					'Content-Type': 'application/json',
+					'Authorization': 'Bearer ' + token,
+					'UserId': userId
+				}),
+			});
+			let responseJson = await response.json();
+			this.setState({ orderQuantity: responseJson })
+		} catch (error) {
+			console.error(error);
+		}
 	}
 
+	checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
+
+	componentDidMount() {
+		this.checkInternetConnection();
+		NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getOrderQuantity();
+                } else this.props.navigation.navigate("NoInternet");
+            });
+	}
 
 	render() {
+		console.log(this.state.internetConnected)
 		return (
 			<View style={styles.container}>
 				<Header navigation={this.props.navigation} title="O restauracji" orderQuantity={this.state.orderQuantity} />

@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import MenuElement from "../components/MenuElement";
 import { SearchBar } from 'react-native-elements';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export class FavouriteScreen extends Component {
 
@@ -14,50 +15,60 @@ export class FavouriteScreen extends Component {
             searchedMenuItems: [],
             likedMenuItems: [],
             orderQuantity: 0,
-            refreshing: false
+            refreshing: false,
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
+
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                this.setState({ orderQuantity: responseJson })
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getLikedMenuItems = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/favourite-menu/user/' + userId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                })
-            });
-            let responseJson = await response.json();
-            this.setState({
-                likedMenuItems: responseJson,
-                searchedMenuItems: responseJson
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/favourite-menu/user/' + userId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    })
+                });
+                let responseJson = await response.json();
+                this.setState({
+                    likedMenuItems: responseJson,
+                    searchedMenuItems: responseJson
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     filtrLikedMenu = (phrase) => {
@@ -113,9 +124,15 @@ export class FavouriteScreen extends Component {
     }
 
     componentDidMount() {
-        this.getOrderQuantity();
-        this.getLikedMenuItems();
-        this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getOrderQuantity();
+            this.getLikedMenuItems();
+            this.interval = setInterval(() => this.getOrderQuantity(), 1000);
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     componentWillUnmount() {
@@ -147,7 +164,7 @@ export class FavouriteScreen extends Component {
                         showsVerticalScrollIndicator={false}>
                         {this.state.likedMenuItems !== null
                             ? this.generateMenuLiked()
-                            : <ActivityIndicator size="large" />}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{ marginTop: 100 }} />}
                     </ScrollView>
                 </View>
             </View>

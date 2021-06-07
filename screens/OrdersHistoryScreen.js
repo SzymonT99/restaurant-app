@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, ActivityIndicator, SafeAreaView, To
 import Header from "../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import MenuElement from "../components/MenuElement";
+import NetInfo from "@react-native-community/netinfo";
 
 export class OrdersHistoryScreen extends Component {
 
@@ -14,98 +15,112 @@ export class OrdersHistoryScreen extends Component {
             userLikedMenuItems: null,
             currentOrderItems: null,
             selectedOrderId: null,
-            currentOrder: null
+            currentOrder: null,
+            scrollView: null,
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                this.setState({ orderQuantity: responseJson })
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getUserOrderHistory = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/orders-history/' + userId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let orders = await response.json();
-            let currentOrder = orders[orders.length - 1];
-            this.setState({
-                orderHistoryList: orders,
-                currentOrder: currentOrder
-            });
-            if (currentOrder != null || currentOrder !== undefined) {
-                let lastId = orders[orders.length - 1].orderId;
-                this.getUserOrderById(lastId);  // domyślnie pokazywane jest ostatnie zamówienie
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/orders-history/' + userId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let orders = await response.json();
+                let currentOrder = orders[orders.length - 1];
+                this.setState({
+                    orderHistoryList: orders,
+                    currentOrder: currentOrder
+                });
+                if (currentOrder != null || currentOrder !== undefined) {
+                    let lastId = orders[orders.length - 1].orderId;
+                    this.getUserOrderById(lastId);  // domyślnie pokazywane jest ostatnie zamówienie
+                }
+            } catch (error) {
+                console.error(error);
             }
-        } catch (error) {
-            console.error(error);
-        }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getUserLikedMenuItems = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu-like/user/' + userId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({
-                userLikedMenuItems: responseJson,
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/menu-like/user/' + userId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                this.setState({
+                    userLikedMenuItems: responseJson,
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getUserOrderById = async (orderId) => {
-        let token = await AsyncStorage.getItem('token');
-        let userId = await AsyncStorage.getItem('userId');
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let order = await response.json();
-            this.setState({
-                currentOrderItems: order,
-                selectedOrderId: orderId
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            let token = await AsyncStorage.getItem('token');
+            let userId = await AsyncStorage.getItem('userId');
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/order/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let order = await response.json();
+                this.setState({
+                    currentOrderItems: order,
+                    selectedOrderId: orderId
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     generateOrdersHistory = () => {
@@ -133,6 +148,8 @@ export class OrdersHistoryScreen extends Component {
     generateOrderElements = () => {
         const { currentOrderItems, userLikedMenuItems } = this.state;
 
+        this.state.scrollView.scrollToEnd({ animated: true })
+
         for (const orderItem of currentOrderItems) {
             orderItem.isLiked = false;
             for (const likedItem of userLikedMenuItems) {
@@ -159,17 +176,16 @@ export class OrdersHistoryScreen extends Component {
     }
 
     componentDidMount() {
-        this.getUserOrderHistory();
-        this.getOrderQuantity();
-        this.getUserLikedMenuItems();
-        // this.interval = setInterval(() => {
-        //     this.getOrderQuantity();
-        //     this.getUserOrderItems();
-        // }, 1000);
-    }
-
-    componentWillUnmount() {
-        //clearInterval(this.interval);
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getUserOrderHistory();
+                    this.getOrderQuantity();
+                    this.getUserLikedMenuItems();
+                    setTimeout(() => this.getOrderQuantity(), 2500);
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     render() {
@@ -177,7 +193,8 @@ export class OrdersHistoryScreen extends Component {
             <View style={styles.container}>
                 <Header navigation={this.props.navigation} title="Historia zamówień" orderQuantity={this.state.orderQuantity} />
                 <SafeAreaView>
-                    <ScrollView horizontal={true} style={styles.historyBox} showsHorizontalScrollIndicator={false} >
+                    <ScrollView horizontal={true} style={styles.historyBox} showsHorizontalScrollIndicator={false}
+                        ref={(view) => { this.state.scrollView = view; }}>
                         {this.state.orderHistoryList.length === 0
                             ? <Text style={styles.textNoOrders}>Nie dokonano jeszcze zamówień.</Text>
                             : this.generateOrdersHistory()
@@ -267,5 +284,6 @@ const styles = StyleSheet.create({
         alignSelf: "center",
         justifyContent: "center",
         textAlign: "center"
-    }
+    },
+
 });

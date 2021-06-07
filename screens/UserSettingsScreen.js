@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, ToastAndroid, ScrollView, Touc
 import { Input } from 'react-native-elements';
 import Header from "../components/Header";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export class UserSettingsScreen extends Component {
 
@@ -21,27 +22,34 @@ export class UserSettingsScreen extends Component {
             oldPasswordInputWarning: '',
             newPasswordInputWarning: '',
             repeatedNewPasswordInputWarning: '',
-            newPhoneNumberInputWarning: ''
+            newPhoneNumberInputWarning: '',
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch('http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-            });
-            let responseJson = await response.json();
-            this.setState({ orderQuantity: responseJson })
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                let response = await fetch('http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                });
+                let responseJson = await response.json();
+                this.setState({ orderQuantity: responseJson })
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     validateEmail = (email) => {
@@ -73,76 +81,80 @@ export class UserSettingsScreen extends Component {
     }
 
     updateEmail = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
 
-        let login = await AsyncStorage.getItem('login');
-        let password = await AsyncStorage.getItem('password');
+            let login = await AsyncStorage.getItem('login');
+            let password = await AsyncStorage.getItem('password');
 
-        try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/email', {
-                method: 'PUT',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-                body: JSON.stringify({
-                    login: login,
-                    password: password,
-                    newEmail: this.state.newEmail,
-                })
-            });
+            try {
+                let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/email', {
+                    method: 'PUT',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                    body: JSON.stringify({
+                        login: login,
+                        password: password,
+                        newEmail: this.state.newEmail,
+                    })
+                });
 
-            let status = await response.status;
+                let status = await response.status;
 
-            if (status === 200) {
-                this.setState({ newEmailInputWarning: '' })
-                this.setState({ newEmail: '' })
-                ToastAndroid.show("Zmieniono email!", ToastAndroid.SHORT);
+                if (status === 200) {
+                    this.setState({ newEmailInputWarning: '' })
+                    this.setState({ newEmail: '' })
+                    ToastAndroid.show("Zmieniono email!", ToastAndroid.SHORT);
+                }
             }
-        }
-        catch (error) {
-            console.error(error);
-        }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     updateLogin = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
 
-        let login = await AsyncStorage.getItem('login');
-        let password = await AsyncStorage.getItem('password');
+            let login = await AsyncStorage.getItem('login');
+            let password = await AsyncStorage.getItem('password');
 
-        try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/login', {
-                method: 'PUT',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-                body: JSON.stringify({
-                    oldLogin: login,
-                    password: password,
-                    newLogin: this.state.newLogin,
-                })
-            });
+            try {
+                let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/login', {
+                    method: 'PUT',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                    body: JSON.stringify({
+                        oldLogin: login,
+                        password: password,
+                        newLogin: this.state.newLogin,
+                    })
+                });
 
-            let status = await response.status;
+                let status = await response.status;
 
-            if (status === 200) {
-                let json = await response.json();
-                AsyncStorage.setItem('token', json.token);
-                AsyncStorage.setItem('login', this.state.newLogin);
-                this.setState({ newLoginInputWarning: '' })
-                this.setState({ newLogin: '' })
-                ToastAndroid.show("Zmieniono login!", ToastAndroid.SHORT);
+                if (status === 200) {
+                    let json = await response.json();
+                    AsyncStorage.setItem('token', json.token);
+                    AsyncStorage.setItem('login', this.state.newLogin);
+                    this.setState({ newLoginInputWarning: '' })
+                    this.setState({ newLogin: '' })
+                    ToastAndroid.show("Zmieniono login!", ToastAndroid.SHORT);
+                }
             }
-        }
-        catch (error) {
-            console.error(error);
-        }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     checkPasswordFields = () => {
@@ -153,7 +165,7 @@ export class UserSettingsScreen extends Component {
             this.setState({ oldPasswordInputWarning: 'Nie podano hasła' })
             status = false;
         }
-      
+
 
         if (newPassword === '') {
             this.setState({ newPasswordInputWarning: 'Nie podano hasła' })
@@ -192,88 +204,98 @@ export class UserSettingsScreen extends Component {
     }
 
     updatePassword = async () => {
-        const { oldPassword, newPassword } = this.state;
-        let login = await AsyncStorage.getItem('login');
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
+        if (this.state.internetConnected) {
+            const { oldPassword, newPassword } = this.state;
+            let login = await AsyncStorage.getItem('login');
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
 
-        try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/password', {
-                method: 'PUT',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-                body: JSON.stringify({
-                    login: login,
-                    oldPassword: oldPassword,
-                    newPassword: newPassword
-                })
-            });
+            try {
+                let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/password', {
+                    method: 'PUT',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                    body: JSON.stringify({
+                        login: login,
+                        oldPassword: oldPassword,
+                        newPassword: newPassword
+                    })
+                });
 
-            let status = await response.status;
+                let status = await response.status;
 
-            if (status === 200) {
-                let json = await response.json();
-                AsyncStorage.setItem('token', json.token);
-                AsyncStorage.setItem('password', newPassword);
+                if (status === 200) {
+                    let json = await response.json();
+                    AsyncStorage.setItem('token', json.token);
+                    AsyncStorage.setItem('password', newPassword);
 
-                this.setState({ oldPasswordInputWarning: '' })
-                this.setState({ newPasswordInputWarning: '' })
-                this.setState({ repeatedNewPasswordInputWarning: '' })
-                this.setState({ oldPassword: '' })
-                this.setState({ newPassword: '' })
-                this.setState({ repeatedNewPassword: '' })
+                    this.setState({ oldPasswordInputWarning: '' })
+                    this.setState({ newPasswordInputWarning: '' })
+                    this.setState({ repeatedNewPasswordInputWarning: '' })
+                    this.setState({ oldPassword: '' })
+                    this.setState({ newPassword: '' })
+                    this.setState({ repeatedNewPassword: '' })
 
-                ToastAndroid.show("Zmieniono hasło!", ToastAndroid.SHORT);
+                    ToastAndroid.show("Zmieniono hasło!", ToastAndroid.SHORT);
+                }
+                if (status === 401) {
+                    this.setState({ oldPasswordInputWarning: 'Hasło nie autoryzuje użytkownika' })
+                }
             }
-            if (status === 401) {
-                this.setState({ oldPasswordInputWarning: 'Hasło nie autoryzuje użytkownika' })
+            catch (error) {
+                console.error(error);
             }
-        }
-        catch (error) {
-            console.error(error);
-        }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     updatePhoneNumber = async () => {
-        let userId = await AsyncStorage.getItem('userId');
-        let token = await AsyncStorage.getItem('token');
+        if (this.state.internetConnected) {
+            let userId = await AsyncStorage.getItem('userId');
+            let token = await AsyncStorage.getItem('token');
 
-        let login = await AsyncStorage.getItem('login');
-        let password = await AsyncStorage.getItem('password');
+            let login = await AsyncStorage.getItem('login');
+            let password = await AsyncStorage.getItem('password');
 
-        try {
-            let response = await fetch('http://192.168.0.153:8080/restaurant/user-update/phone', {
-                method: 'PUT',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                }),
-                body: JSON.stringify({
-                    login: login,
-                    password: password,
-                    newPhoneNumber: this.state.newPhoneNumber
-                })
-            });
+            try {
+                let response = await fetch('http://192.168.0.152:8080/restaurant/user-update/phone', {
+                    method: 'PUT',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    }),
+                    body: JSON.stringify({
+                        login: login,
+                        password: password,
+                        newPhoneNumber: this.state.newPhoneNumber
+                    })
+                });
 
-            let status = await response.status;
+                let status = await response.status;
 
-            if (status === 200) {
-                this.setState({ newPhoneNumberInputWarning: '' })
-                this.setState({ newPhoneNumber: '' })
-                ToastAndroid.show("Zmieniono numer telefonu!", ToastAndroid.SHORT);
+                if (status === 200) {
+                    this.setState({ newPhoneNumberInputWarning: '' })
+                    this.setState({ newPhoneNumber: '' })
+                    ToastAndroid.show("Zmieniono numer telefonu!", ToastAndroid.SHORT);
+                }
             }
-        }
-        catch (error) {
-            console.error(error);
-        }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     componentDidMount() {
-        this.getOrderQuantity();
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getOrderQuantity();
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     render() {
@@ -362,7 +384,7 @@ export class UserSettingsScreen extends Component {
                                     leftIcon={{ type: 'font-awesome', name: 'lock', size: 28, color: "white" }}
                                     rightIcon={
                                         <TouchableOpacity style={styles.confirmButton}
-                                            onPress={() => this.checkPasswordFields() ? this.updatePassword() : null }>
+                                            onPress={() => this.checkPasswordFields() ? this.updatePassword() : null}>
                                             <Text style={styles.confirmButtonText}>Zapisz</Text>
                                         </TouchableOpacity>}
                                     inputStyle={{ marginLeft: 8, color: "white", fontSize: 16, fontFamily: "Roboto" }}

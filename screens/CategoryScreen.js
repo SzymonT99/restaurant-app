@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import SpecialOfferElement from "../components/SpecialOfferElement";
 import CategoryElement from "../components/CategoryElement";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export class CategoryScreen extends Component {
 
@@ -15,63 +16,92 @@ export class CategoryScreen extends Component {
             searchedCategory: [],
             categories: null,
             specialOffers: null,
-            orderQuantity: 0
+            orderQuantity: 0,
+            guest: false,
+            internetConnected: true,
         }
     }
 
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+    });
+
     getOrderQuantity = async () => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            let userId = await AsyncStorage.getItem('userId');
-            let token = await AsyncStorage.getItem('token');
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
-                    headers: new Headers({
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token,
-                        'UserId': userId
-                    }),
-                });
-            let responseJson = await response.json();
-            this.setState({orderQuantity: responseJson})
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            if (this.state.guest !== true) {
+                let orderId = await AsyncStorage.getItem('orderId');
+                let userId = await AsyncStorage.getItem('userId');
+                let token = await AsyncStorage.getItem('token');
+                try {
+                    let response = await fetch(
+                        'http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
+                        headers: new Headers({
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + token,
+                            'UserId': userId
+                        }),
+                    });
+                    let responseJson = await response.json();
+                    this.setState({ orderQuantity: responseJson })
+                } catch (error) {
+                    console.error(error);
+                }
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getCategoriesFromApi = async () => {
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/categories'
-            );
-            let responseJson = await response.json();
-            this.setState({
-                categories: responseJson,
-                searchedCategory: responseJson
+        if (this.state.internetConnected) {
+            let guest = false;
+            await AsyncStorage.getItem('guest').then((flag) => {
+                if (flag === 'true') {
+                    this.setState({ guest: true })
+                    guest = true;
+                }
             });
-        } catch (error) {
-            console.error(error);
-        }
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/categories'
+                );
+                let responseJson = await response.json();
+                this.setState({
+                    categories: responseJson,
+                    searchedCategory: responseJson
+                });
+                if (guest !== true) {
+                    this.getOrderQuantity();
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     getSpecialOffersFromApi = async () => {
-        try {
-            let response = await fetch(
-                'http://192.168.0.153:8080/restaurant/menu/special-offer'
-            );
-            let responseJson = await response.json();
-            this.setState({
-                specialOffers: responseJson
-            });
-        } catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let response = await fetch(
+                    'http://192.168.0.152:8080/restaurant/menu/special-offer'
+                );
+                let responseJson = await response.json();
+                this.setState({
+                    specialOffers: responseJson
+                });
+            } catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     componentDidMount() {
-        this.getCategoriesFromApi();
-        this.getSpecialOffersFromApi();
-        this.getOrderQuantity();
+        this.checkInternetConnection();
+        NetInfo.fetch().then(
+            state => {
+                if (state.isConnected === true) {
+                    this.getCategoriesFromApi();
+                    this.getSpecialOffersFromApi();
+                } else this.props.navigation.navigate("NoInternet");
+            });
     }
 
     generateCategoryElements = () => {
@@ -127,7 +157,9 @@ export class CategoryScreen extends Component {
     render() {
         return (
             <View style={styles.container}>
-                <Header navigation={this.props.navigation} title="Menu" orderQuantity={this.state.orderQuantity} />
+                <Header navigation={this.props.navigation} title="Menu" orderQuantity={this.state.orderQuantity}
+                    logout={this.state.guest !== false ? true : false}
+                    noneRight={this.state.guest !== false ? true : false} />
                 <View style={styles.contentContainer}>
                     <SearchBar
                         clearIcon={{ color: "#000000" }}
@@ -144,17 +176,17 @@ export class CategoryScreen extends Component {
                         <Text style={styles.offerHeader}>Dania dnia</Text>
                         <SafeAreaView>
                             <ScrollView horizontal={true} style={styles.specialOfferContainer} alignItems="center"
-                            showsHorizontalScrollIndicator={false}>
+                                showsHorizontalScrollIndicator={false}>
                                 {this.state.specialOffers !== null
                                     ? this.generateSpecialOfferElements()
-                                    : <ActivityIndicator size={100} color="#ff8c29" style={{marginLeft: 130}}/>}
+                                    : <ActivityIndicator size={100} color="#ff8c29" style={{ marginLeft: 130 }} />}
                             </ScrollView>
                         </SafeAreaView>
                         <Text style={styles.offerHeader}>Kategorie</Text>
 
                         {this.state.categories !== null
                             ? this.generateCategoryElements()
-                            : <ActivityIndicator size={100} color="#ff8c29" style={{marginTop: 60}}/>}
+                            : <ActivityIndicator size={100} color="#ff8c29" style={{ marginTop: 60 }} />}
                     </ScrollView>
                 </View>
             </View>

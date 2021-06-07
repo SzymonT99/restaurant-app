@@ -3,26 +3,22 @@ import { Text, StyleSheet, TouchableOpacity, View, Image, ToastAndroid } from "r
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
 
 export default class MenuElement extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
-            userId: 0,
-            isLiked: false
+            isLiked: false,
+            guest: false,
+            internetConnected: true,
         }
     }
 
-    getUserId = async () => {
-        try {
-            const id = await AsyncStorage.getItem('userId');
-            if (id !== '') {
-                this.setState({ userId: parseInt(id) })
-            }
-        } catch (error) {
-        }
-    };
+    checkInternetConnection = () => NetInfo.addEventListener(state => {
+        this.setState({ internetConnected: state.isConnected });
+      });
 
     formatCurrentName = (text) => {
         if (text.length > 20) {
@@ -38,95 +34,113 @@ export default class MenuElement extends Component {
         else return text;
     }
 
-    addToFavourite = async (userId, menuItemId) => {
-        try {
-            const data = { userId: userId, menuItemId: menuItemId };
-            let token = await AsyncStorage.getItem('token');
-            await fetch(
-                `http://192.168.0.153:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
-                method: 'POST',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                })
-            });
-            this.setState({ isLiked: true });
-            ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
-        }
-        catch (error) {
-            console.error(error);
-        }
+    addToFavourite = async (menuItemId) => {
+        if (this.state.internetConnected) {
+            try {
+                let userId = await AsyncStorage.getItem('userId');
+                const data = { userId: userId, menuItemId: menuItemId };
+                let token = await AsyncStorage.getItem('token');
+                await fetch(
+                    `http://192.168.0.152:8080/restaurant/add-to-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                    method: 'POST',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    })
+                });
+                this.setState({ isLiked: true });
+                ToastAndroid.show("Dodano do ulubionych", ToastAndroid.SHORT);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
 
-    removeFromFavourite = async (userId, menuItemId) => {
-        try {
-            const data = { userId: userId, menuItemId: menuItemId };
-            let token = await AsyncStorage.getItem('token');
-            await fetch(
-                `http://192.168.0.153:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
-                method: 'DELETE',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': userId
-                })
-            });
-            this.setState({ isLiked: false });
-            ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
-        }
-        catch (error) {
-            console.error(error);
-        }
+    removeFromFavourite = async (menuItemId) => {
+        if (this.state.internetConnected) {
+            try {
+                let userId = await AsyncStorage.getItem('userId');
+                const data = { userId: userId, menuItemId: menuItemId };
+                let token = await AsyncStorage.getItem('token');
+                await fetch(
+                    `http://192.168.0.152:8080/restaurant/remove-from-favourite?userId=${encodeURIComponent(data.userId)}&menuItemId=${encodeURIComponent(data.menuItemId)}`, {
+                    method: 'DELETE',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    })
+                });
+                this.setState({ isLiked: false });
+                ToastAndroid.show("Usunięto z ulubionych", ToastAndroid.SHORT);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     addItemToBasket = async (menuItemId) => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            const data = { menuId: menuItemId, orderId: orderId };
-            let token = await AsyncStorage.getItem('token');
-            await fetch(
-                `http://192.168.0.153:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
-                method: 'POST',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': this.state.userId
-                })
-            });
-            ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
-        }
-        catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                const data = { menuId: menuItemId, orderId: orderId };
+                let token = await AsyncStorage.getItem('token');
+                let userId = await AsyncStorage.getItem('userId');
+                await fetch(
+                    `http://192.168.0.152:8080/restaurant/add-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                    method: 'POST',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    })
+                });
+                ToastAndroid.show("Dodano do koszyka", ToastAndroid.SHORT);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
     removeItemFromBasket = async (menuItemId) => {
-        try {
-            let orderId = await AsyncStorage.getItem('orderId');
-            const data = { menuId: menuItemId, orderId: orderId };
-            let token = await AsyncStorage.getItem('token');
-            await fetch(
-                `http://192.168.0.153:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
-                method: 'DELETE',
-                headers: new Headers({
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + token,
-                    'UserId': this.state.userId
-                })
-            });
-            ToastAndroid.show("Usunięto z koszyka", ToastAndroid.SHORT);
-        }
-        catch (error) {
-            console.error(error);
-        }
+        if (this.state.internetConnected) {
+            try {
+                let orderId = await AsyncStorage.getItem('orderId');
+                const data = { menuId: menuItemId, orderId: orderId };
+                let token = await AsyncStorage.getItem('token');
+                let userId = await AsyncStorage.getItem('userId');
+                await fetch(
+                    `http://192.168.0.152:8080/restaurant/delete-order-element?menuId=${encodeURIComponent(data.menuId)}&orderId=${encodeURIComponent(data.orderId)}`, {
+                    method: 'DELETE',
+                    headers: new Headers({
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token,
+                        'UserId': userId
+                    })
+                });
+                ToastAndroid.show("Usunięto z koszyka", ToastAndroid.SHORT);
+            }
+            catch (error) {
+                console.error(error);
+            }
+        } else this.props.navigation.navigate("NoInternet");
     }
 
-    componentDidMount() {
-        this.getUserId();
+    async componentDidMount() {
+        this.checkInternetConnection();
         this.setState({
             isLiked: this.props.isLiked
+        })
+        await AsyncStorage.getItem('guest').then((flag) => {
+            if (flag === 'true') {
+                this.setState({ guest: true })
+                guest = true;
+            }
         })
     }
 
@@ -154,15 +168,16 @@ export default class MenuElement extends Component {
                             </View>
                             {this.props.forBasket !== true
                                 ?
-                                <TouchableOpacity style={styles.basketButtonStyle}
-                                    onPress={() => this.addItemToBasket(this.props.detailsId)}>
-                                    <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
-                                </TouchableOpacity>
+                                (this.state.guest !== true ?
+                                    <TouchableOpacity style={styles.basketButtonStyle}
+                                        onPress={() => this.addItemToBasket(this.props.detailsId)}>
+                                        <Text style={styles.basketButtonText}>Dodaj do koszyka</Text>
+                                    </TouchableOpacity> : <View />)
                                 :
                                 <View style={styles.orderBox}>
                                     {this.props.forHistory !== true
                                         ?
-                                        <View style={{flexDirection: "row"}}>
+                                        <View style={{ flexDirection: "row" }}>
                                             <TouchableOpacity
                                                 onPress={() => this.addItemToBasket(this.props.detailsId)}>
                                                 <MaterialIcon name="add-circle-outline" color="#ff8c29" size={28} />
@@ -181,12 +196,16 @@ export default class MenuElement extends Component {
                             }
                         </View>
                     </View>
-                    {this.state.isLiked === true
-                        ? <Icon style={styles.heartIconStyle} name="heart" color="#f26566" size={24}
-                            onPress={() => this.removeFromFavourite(this.state.userId, this.props.detailsId)} />
-                        : <Icon style={styles.heartIconStyle} name="heart-outline" color="#000000" size={24}
-                            onPress={() => this.addToFavourite(this.state.userId, this.props.detailsId)} />
-                    }
+                    {this.state.guest !== true ?
+                        <View>
+                            {this.state.isLiked === true
+                                ? <Icon style={styles.heartIconStyle} name="heart" color="#f26566" size={24}
+                                    onPress={() => this.removeFromFavourite(this.props.detailsId)} />
+                                : <Icon style={styles.heartIconStyle} name="heart-outline" color="#000000" size={24}
+                                    onPress={() => this.addToFavourite(this.props.detailsId)} />
+                            }
+                        </View>
+                        : <View />}
                 </View>
             </TouchableOpacity>
         );
@@ -264,7 +283,7 @@ const styles = StyleSheet.create({
     heartIconStyle: {
         position: 'absolute',
         top: -1,
-        right: -8
+        right: -20
     },
     orderBox: {
         flexDirection: "row",
