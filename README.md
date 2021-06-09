@@ -16,6 +16,13 @@ Mobile application for restaurants
 - The navigation is based on drawer navigation.
 - Protection against no Internet connection.
 
+## Setup
+To run the applications you must:
+1. Clone the server repository: <br>
+[https://github.com/SzymonT99/restaurant-server.git](https://github.com/SzymonT99/restaurant-server.git)
+2. Launch XAMPP Control Panel.
+3. Run Spring Boot on the server.
+
 ## Presentation
 - Registration and login process
 <br />
