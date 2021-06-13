@@ -37,7 +37,7 @@ export class UserSettingsScreen extends Component {
                 let orderId = await AsyncStorage.getItem('orderId');
                 let userId = await AsyncStorage.getItem('userId');
                 let token = await AsyncStorage.getItem('token');
-                let response = await fetch('http://192.168.0.153:8080/restaurant/order/quantity/' + orderId, {
+                let response = await fetch('http://192.168.0.152:8080/restaurant/order/quantity/' + orderId, {
                     headers: new Headers({
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token,

@@ -107,7 +107,7 @@ export class BasketScreen extends Component {
 
         let sumOfPrice = 0.0;
         for (const orderItem of orderItems) {
-            sumOfPrice += orderItem.price;
+            sumOfPrice += orderItem.price * orderItem.quantity;
         }
         sumOfPrice = Math.round(sumOfPrice * 100) / 100;
 
@@ -134,7 +134,7 @@ export class BasketScreen extends Component {
                 menuItemImage={item.menuItemImage}
                 menuItemName={item.itemName}
                 menuItemIngritients={item.ingredients.join(", ")}
-                menuItemPrice={(item.price / item.quantity).toFixed(2)}
+                menuItemPrice={item.price}
                 menuItemRate={item.rate}
                 orderItemQuantity={item.quantity}
                 key={itemIndex} />
