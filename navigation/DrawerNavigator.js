@@ -240,7 +240,7 @@ export default class DrawerNavigator extends Component {
         <Drawer.Screen name='Login' component={LoginScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='Category' component={CategoryScreen}
-          unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false}} />
+          unmountOnBlur={true} options={{ unmountOnBlur: true}} />
         <Drawer.Screen name='Menu' component={MenuScreen}
           unmountOnBlur={true} options={{ unmountOnBlur: true, gestureEnabled: false }} />
         <Drawer.Screen name='Details' component={DetailsScreen}
