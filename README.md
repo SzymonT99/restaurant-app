@@ -52,7 +52,3 @@ To run the applications you must:
 <br />
 <img src="https://github.com/SzymonT99/restaurant-app/blob/develop/docs/order.png" width="750" height="520">
 <br />
-
-## Database structure
-<img src="https://github.com/SzymonT99/restaurant-app/blob/develop/docs/database.png" width="800" height="525">
-<br />
